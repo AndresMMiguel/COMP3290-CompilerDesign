@@ -1,5 +1,7 @@
 public class SyntaxNode {
     
+    //one child: left only
+    //two children: left & right
     private String symbolValue;
     private String symbolType;
     private SyntaxNode left;
