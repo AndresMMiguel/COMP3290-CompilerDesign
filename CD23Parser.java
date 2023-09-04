@@ -1,6 +1,15 @@
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
+
+//Hashmap methods
+//  hashMap.put(key, object)
+//  SymbolForTable currentSymbolInfo = hashMap.get(key)
+//  hashMap.remove(key)
+//  boolean containsKey = hashMap.containsKey(key)
+//  hashMap.keySet()
 
 public class CD23Parser {
     private static CD23Scanner scanner = new CD23Scanner();
@@ -10,6 +19,7 @@ public class CD23Parser {
     private static Token lookAheadToken;
     private static Stack<Token> tokenStack;
     
+    //transfers tokens from scanner to a stack for parsing
     private static void transferTokensToStack(){
         int arrayLength = tokenList.size();
         arrayLength = arrayLength-1;
@@ -19,10 +29,12 @@ public class CD23Parser {
         }
     }
 
+    //updates current token
     private static void updateCurrnetToken(){
         currentToken = tokenStack.pop();
     }
 
+    //updates look ahead token
     private static void peekNextToken(){
         lookAheadToken = tokenStack.peek();
     }
@@ -30,6 +42,7 @@ public class CD23Parser {
 
     public static void main (String[] args) throws IOException{
         tokenList = scanner.main(scannerArgs);
+        Map<String, SymbolForTable> symbolTable = new HashMap<>();
         transferTokensToStack();
         updateCurrnetToken();
         peekNextToken();
