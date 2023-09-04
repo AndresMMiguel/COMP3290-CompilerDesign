@@ -14,7 +14,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
+
+//Hashmap methods
+//  hashMap.put(key, object)
+//  SymbolForTable currentSymbolInfo = hashMap.get(key)
+//  hashMap.remove(key)
+//  boolean containsKey = hashMap.containsKey(key)
+//  hashMap.keySet()
 
 //Hashmap methods
 //  hashMap.put(key, object)
