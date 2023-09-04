@@ -1,8 +1,52 @@
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
+import java.util.ArrayList;
 
+//Hashmap methods
+//  hashMap.put(key, object)
+//  SymbolForTable currentSymbolInfo = hashMap.get(key)
+//  hashMap.remove(key)
+//  boolean containsKey = hashMap.containsKey(key)
+//  hashMap.keySet()
 
 public class NonTerminalMethods {
-    //NPROG <program> ::= CD23 <id> <globals> <funcs> <mainbody>
+    private static Token currentToken;
+    private static Token lookAheadToken;
+    private static Stack<Token> tokenStack;
+    Map<String, SymbolForTable> symbolTable = new HashMap<>();
 
+
+    public static void transferTokensToStack(ArrayList<Token> tokenList){
+        int arrayLength = tokenList.size();
+        arrayLength = arrayLength-1;
+        while(arrayLength >= 0){
+            tokenStack.push(tokenList.get(arrayLength));
+            arrayLength= arrayLength-1;
+        }
+    }
+
+        //updates current token
+        private static void updateCurrnetToken(){
+            currentToken = tokenStack.pop();
+        }
+    
+        //updates look ahead token
+        private static void peekNextToken(){
+            lookAheadToken = tokenStack.peek();
+        }
+    
+    public static HashMap superMethod(){
+        updateCurrnetToken();
+        peekNextToken();
+        //calls methods from within
+        //obatin symbol
+        //insert symbolfortable into hashmap
+        //return hashmap;
+    }
+
+    //NPROG <program> ::= CD23 <id> <globals> <funcs> <mainbody>
+    
     //NGLOB <globals> ::= <consts> <types> <arrays>
 
     //NILIST <initlist> ::= <init> , <initlist>
@@ -99,7 +143,8 @@ public class NonTerminalMethods {
     //NOUTP <iostat> ::= Out << <prlist>
     //NOUTL <iostat> ::= Out << Line
     //NOUTL <iostat> ::= Out << <prlist> << Line
-
+//------------------------------------------------------------------^^cameron^^---------------------------------------------------
+//-------------------------->>Andres<<------------------------------------------------------------------------------------------------
     //NCALL <callstat> ::= <id> ( <elist> ) | <id> ( )
 
     //NRETN <returnstat> ::= return void | return <expr>
