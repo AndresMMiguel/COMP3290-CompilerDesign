@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 
 class CD23Scanner {
 
-    private static String path = "C:\\Users\\cswif\\Desktop\\compilerdesign\\scripts\\assignment1/a-1.txt";
+    private static String path = "C:\\Users\\cswif\\Desktop\\compilerdesign\\scripts\\CD23ExampleAST.txt";
     private static String file;
     private static int charNum;
     private static int line;
@@ -90,7 +90,7 @@ class CD23Scanner {
     }
 
 
-    public static void main (String[] args) throws IOException{
+    public static ArrayList<Token> main (String[] args) throws IOException{
 
         // To put the path of the file you want to compile in the command window this way: java CD23Scanner.java [path]
         if (args.length > 0)
@@ -371,5 +371,6 @@ class CD23Scanner {
                 System.out.println("lexical error (" + token.getLineNumber() + "," + token.getColumnNumber() + ") : " + message);
             }
         }
+        return tokenList;
     }
 }
