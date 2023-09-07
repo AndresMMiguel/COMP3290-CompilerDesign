@@ -1,0 +1,14 @@
+CD23 ExampleAST
+    main
+        i:integer, j:integer, k:integer
+    begin
+        In >> i;
+        In >> j;
+        k = i + j;
+        Out << k << Line;
+    end CD23 ExampleAST
+
+TCD23  TIDEN ExampleAST TMAIN  TIDEN i TCOLN  TINTG  TCOMA  TIDEN j TCOLN  TINTG  
+TCOMA  TIDEN k TCOLN  TINTG  TBEGN  TINPT  TGRGR  TIDEN i TSEMI  TINPT
+TGRGR  TIDEN j TSEMI  TIDEN k TEQUL  TIDEN i TPLUS  TIDEN j TSEMI  TOUTP
+TLSLS  TIDEN k TLSLS  TOUTL  TSEMI  TTEND  TCD23  TIDEN ExampleAST TTEOF

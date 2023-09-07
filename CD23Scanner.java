@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 
 class CD23Scanner {
 
-    private static String path = "C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment1/a-1.txt";
+    private static String path = "C:\\Users\\cswif\\Desktop\\compilerdesign\\scripts\\assignment1\\a-2.txt";
     private static String file;
     private static int charNum;
     private static int line;
@@ -90,7 +90,7 @@ class CD23Scanner {
     }
 
 
-    public static void main (String[] args) throws IOException{
+    public static ArrayList<Token> main (String[] args) throws IOException{
 
         // To put the path of the file you want to compile in the command window this way: java CD23Scanner.java [path]
         if (args.length > 0)
@@ -332,12 +332,32 @@ class CD23Scanner {
         }
 
         tokenList.add(token.returnTEOF(line, column));
-
+        int printCounter = 0;
+        Token undefinded = token.returnUndefinedToken("",line,column);
+        Token stringLit = token.returnStringToken("",line,column);
         for(Token token:tokenList){
-            if(token.getLexeme().equals("")){
-                System.out.print(token.getTokenEnum() + ": " + token.getLexeme() + ' ');
-            }else{
-                System.out.println("\n" + token.getTokenEnum() + ": " + token.getLexeme());
+            //if(token.getLexeme().equals("")){
+            if(token.getTokenEnum() == undefinded.getTokenEnum()){
+                //System.out.print('\n');
+                System.out.println(token.getTokenEnum());
+                System.out.println(token.getLexeme());
+                printCounter = 0;
+            }
+            else if(printCounter < 10){
+                System.out.print(token.getTokenEnum()+" " + token.getLexeme()+" ");
+                printCounter++;
+            }
+            else if(token.getTokenEnum() == stringLit.getTokenEnum()){
+                System.out.println(token.getTokenEnum()+" "+ token.getLexeme()+'\n');
+                printCounter = 0;
+            }
+            //else{
+                //System.out.println( token.getTokenEnum() + token.getLexeme());
+                //printCounter = 0;
+            //}
+            if(printCounter >= 10){
+                printCounter = 0;
+                System.out.print('\n');
             }
         }
         System.out.println("\n\n\nLexical Errors");
@@ -351,5 +371,6 @@ class CD23Scanner {
                 System.out.println("lexical error (" + token.getLineNumber() + "," + token.getColumnNumber() + ") : " + message);
             }
         }
+        return tokenList;
     }
 }
