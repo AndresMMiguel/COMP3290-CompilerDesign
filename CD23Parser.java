@@ -18,9 +18,9 @@ public class CD23Parser {
     private static Map<String, SymbolForTable> symbolTable = new HashMap<>();
 
     public static void main (String[] args) throws IOException{
-        tokenList = scanner.main(scannerArgs);
-        nonTerminalMethods.transferTokensToStack(tokenList);
-        symbolTable = nonTerminalMethods.superMethod();
+        tokenList = CD23Scanner.main(scannerArgs);
+        NonTerminalMethods.transferTokensToStack(tokenList);
+        symbolTable = NonTerminalMethods.superMethod();
 
     }
 }

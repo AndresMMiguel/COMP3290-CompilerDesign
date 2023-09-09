@@ -21,10 +21,12 @@ public class NonTerminalMethods {
     public static void transferTokensToStack(ArrayList<Token> tokenList){
         int arrayLength = tokenList.size();
         arrayLength = arrayLength-1;
+        Stack<Token> tempStack = new Stack<Token>();
         while(arrayLength >= 0){
-            tokenStack.push(tokenList.get(arrayLength));
+            tempStack.push(tokenList.get(arrayLength));
             arrayLength= arrayLength-1;
         }
+        tokenStack = tempStack;
     }
 
     //updates current token
@@ -51,22 +53,36 @@ public class NonTerminalMethods {
         return symbolTable;
     }
 
+    //--------------------To DO---------------------------------------
+    // 1) finish connecting nodes w/ child functions
+    // 2) identify all tokens that create nodes
+    // 3) locate spots in code to update tokens
+    // 4) locate spots in code to peek ahead
+    // 5) determine edge cases
+    //----------------------------------------------------------------
+
     //NPROG <program> ::= CD23 <id> <globals> <funcs> <mainbody>
     private static void nProg(){
-        if(currentToken.equals("CD23")){
-            root = new SyntaxNode("CD23", "NPROG");
-            updateCurrnetToken();
-            if(currentToken.equals()){ //globals
-                root.setLeft(nGlob());
+        if(currentToken.getTokenEnumString().equals("TCD23")){
+            updateTokens();
+            if(currentToken.getTokenEnumString().equals("TIDEN")){//sets root node identifier
+                root = new SyntaxNode(currentToken.getLexeme(), "NPROG");
                 updateTokens();
             }
-            if(currentToken.equals()){ //functions
-                root.setMIddle(nFuncs());
-                updateTokens();
+            else{
+                //error
             }
-            if(currentToken.equals("TMAIN")){ //main
+
+//            if(currentToken.equals()){ //globals
+//                root.setLeft(nGlob());
+//                updateTokens();
+//            }
+//            if(currentToken.equals()){ //functions
+//                root.setMIddle(nFuncs());
+//                updateTokens();
+//            }
+            if(currentToken.getTokenEnumString().equals("TMAIN")){
                 root.setRight(nMain());
-                updateTokens();
             }
         }
         else{
@@ -76,18 +92,24 @@ public class NonTerminalMethods {
 
     //NGLOB <globals> ::= <consts> <types> <arrays>
     private static SyntaxNode nGlob(){
+        SyntaxNode NGLOB = new SyntaxNode("NGLOB", "NGLOB");
 
+        //enter codebase for nfuncs here-------------------------
     }
 
     //NILIST <initlist> ::= <init> , <initlist>
     //Special <initlist> ::= <init>
-    private SymbolForTable nIList(){
-
+    private SyntaxNode nIList(){
+        SyntaxNode NILIST = new SyntaxNode( , );
+        //enter codbase here---------------------------------------------------
+        return NILIST;
     }
 
     //NINIT <init> ::= <id> is <expr>
-    private SymbolForTable nINit(){
-
+    private SyntaxNode nINit(){
+        SyntaxNode NINIT = new SyntaxNode( , );
+        //enter codbase here---------------------------------------------------
+        return NINIT;
     }
 
     //Special <rtype> ::= <stype> | void
@@ -102,64 +124,73 @@ public class NonTerminalMethods {
     //Special <stat> ::= <reptstat> | <asgnstat> | <iostat>
     //Special <stat> ::= <callstat> | <returnstat>
     //Special <asgnstat> ::= <var> <asgnop> <bool>
-    private SymbolForTable special(){
-
+    private SyntaxNode special(){
+        SyntaxNode SPECIAL = new SyntaxNode( , );
+        //enter codbase here---------------------------------------------------
+        return SPECIAL;
     }
 
     //NFUNCS <funcs> ::= <func> <funcs>
     //Special <funcs> ::= ε
     private static SyntaxNode nFuncs(){
+        SyntaxNode NFUNCS = new SyntaxNode("NFUNCS", "NFUNCS");
 
+        //enter codebase for nfuncs here-------------------------
+
+        return NFUNCS;
     }
 
     //NMAIN <mainbody> ::= main <slist> begin <stats> end CD23 <id>
     private static SyntaxNode nMain(){
-        SyntaxNode main = new SyntaxNode("main", "NMAIN");
-        updateCurrnetToken();
-        if(currentToken.equals("TIDEN")){//NSDLST
-            main.setLeft(nSdlst());
-            updateTokens();
+        SyntaxNode NMAIN = new SyntaxNode("main", "NMAIN");
+        updateTokens();
+        if(currentToken.getTokenEnumString().equals("TIDEN")){
+            NMAIN.setLeft(nSdlst());//NSDLST 
         }
-        if(currentToken.equals("TBEGN")){//NSTATS
-            main.setRight(nStats());
-            updateTokens();
+        if(currentToken.getTokenEnumString().equals("TBEGN")){
+            NMAIN.setRight(nStats());//NSTATS
         }
-        return main;
+        return NMAIN;
     }
 
     //NSDLST <slist> ::= <sdecl> , <slist>
     //Special <slist> ::= <sdecl>
     private static SyntaxNode nSdlst(){
         SyntaxNode NSDLST = new SyntaxNode("NSDLST", "NSDLST");
-        if(currentToken.equals()){  //NSDECL
-            NSDLST.setLeft(nSdecl());
-            updateTokens();
+        if(currentToken.getTokenEnumString().equals("TIDEN")){ //token declaration
+            NSDLST.setLeft(nSdecl());//NSDECL
         }
-        if(currentToken.equals()){  //NSDECL
-            NSDLST.setMiddle(nSdecl());
-            updateTokens();
+        if(currentToken.getTokenEnumString().equals("TCOMA")){ // another node for a token declaration
+            NSDLST.setRight(nSdlst());//NSDLST
         }
-        if(currentToken.equals("TIDEN")){ //NSDLST
-            NSDLST.setRight(nSdlst());
-            updateTokens();
+        if(currentToken.getTokenEnumString().equals("TBEGN")){ // looks for TBEGN token or produces an error
+            return NSDLST;
         }
-        return NSDLST;
+        else{
+            //error
+        }
     }
 
     //NTYPEL <typelist> ::= <type> <typelist>
     //Special <typelist> ::= <type>
     private static SyntaxNode nTypel(){
-
+        SyntaxNode NTYPEL = new SyntaxNode( , );
+        //enter codbase here---------------------------------------------------
+        return NTYPEL;
     }
 
     //NRTYPE <type> ::= <structid> is <fields> end
     private static SyntaxNode nRType(){
-
+        SyntaxNode NRTYPE = new SyntaxNode( , );
+        //enter codbase here---------------------------------------------------
+        return NRTYPE;
     }
 
     //NATYPE <type> ::= <typeid> is array [ <expr> ] of <structid> end
     private static SyntaxNode nAType(){
-
+        SyntaxNode NATYPE = new SyntaxNode( , );
+        //enter codbase here---------------------------------------------------
+        return NATYPE;
     }
 
     //NFLIST <fields> ::= <sdecl> , <fields>
@@ -170,97 +201,161 @@ public class NonTerminalMethods {
 
     //NSDECL <sdecl> ::= <id> : <stype>
     private static SyntaxNode nSdecl(){
-        SyntaxNode NSDECL = new SyntaxNode("NSDLST", "NSDECL");
+        SyntaxNode NSDECL = new SyntaxNode(currentToken.getLexeme(), "NSDECL");
+        updateTokens();
+        //currentToken = TCOLN    lookAhead = type token
+        //error if not in this order!!!!
         //create symbol and add to table/hashmap------------------------------------------
+        updateTokens();
+        updateTokens();
         return NSDECL;
     }
 
     //NALIST <arrdecls> ::= <arrdecl> , <arrdecls>
     //Special <arrdecls> ::= <arrdecl>
     private static SyntaxNode nAList(){
+        SyntaxNode NALIST = new SyntaxNode( , );
 
+        return NALIST;
     }
 
     //NARRD <arrdecl> ::= <id> : <typeid>
     private static SyntaxNode nAarrd(){
+        SyntaxNode NAARRD = new SyntaxNode( , );
 
+        return NAARRD;
     }
 
     //NFUND <func> ::= func <id> ( <plist> ) : <rtype> <funcbody>
     private static SyntaxNode nFund(){
+        SyntaxNode NFUND = new SyntaxNode( , );
 
+        return NFUND;
     }
 
     //NPLIST <params> ::= <param> , <params>
     //Special <params> ::= <param>
     private static SyntaxNode nPList(){
+        SyntaxNode NPLIST = new SyntaxNode( , );
 
+        return NPLIST;
     }
     
     //NSIMP <param> ::= <sdecl>
     private static SyntaxNode nSimp(){
+        SyntaxNode NSIMP = new SyntaxNode( , );
 
+        return NSIMP;
     }
 
     //NARRP <param> ::= <arrdecl>
     private static SyntaxNode nArrp(){
+        SyntaxNode NAARP = new SyntaxNode( , );
 
+        return NAARP;
     }
 
     //NARRC <param> ::= const <arrdecl>
     private static SyntaxNode nArrc(){
+        SyntaxNode NAARC = new SyntaxNode( , );
 
+        return NAARC;
     }
 
     //NDLIST <dlist> ::= <decl> , <dlist>
     //Special <dlist> ::= <decl>
     private static SyntaxNode nDList(){
+        SyntaxNode NDLIST = new SyntaxNode( , );
 
+        return NDLIST;
     }
 
     //NSTATS <stats> ::= <stat> ; <stats> | <strstat> <stats>
     //Special <stats> ::= <stat>; | <strstat>
     private static SyntaxNode nStats(){
         SyntaxNode NSTATS = new SyntaxNode("NSTATS", "NSTATS");
-        //create symbol and add to table/hashmap------------------------------------------
-        if(currentToken.equals("TINPT")){
-            if(lookAheadToken.equals("TGRGR")){
-                NSTATS.setLeft(nSimv());
+        updateTokens();
+        if(currentToken.getTokenEnumString().equals("TINPT")){
+            if(lookAheadToken.getTokenEnumString().equals("TGRGR")){
+                NSTATS.setLeft(nInput());
             }
             else{
                 //error
+            }
+        }
+        if(currentToken.getTokenEnumString().equals("TSEMI")){//tokens for a new stats
+            NSTATS.setRight(nStats());
+        }
+        if(currentToken.getTokenEnumString().equals("TIDEN")){//assignment node
+            if(lookAheadToken.getTokenEnumString().equals("TEQUL")){
+                NSTATS.setLeft(nAsgns());
+            }
+        }
+        if(currentToken.getTokenEnumString().equals("TOUTP")){
+            if(currentToken.getTokenEnumString().equals("TLSLS")){
+                NSTATS.setRight(nOutl());
             }
         }
         return NSTATS;
     }
 
     private static SyntaxNode nSimv(){
-        SyntaxNode NSIMV = new SyntaxNode("", "NSIMV");
-        //create symbol and add to table/hashmap------------------------------------------
+        SyntaxNode NSIMV = new SyntaxNode(currentToken.getLexeme(), "NSIMV");
+        //check for symbol on table/hashmap------------------------------------------
+        //error if not on hashmap
+        updateTokens();
         return NSIMV;
     }
 
     //NFORL <forstat> ::= for ( <asgnlist> ; <bool> ) <stats> end
     private static SyntaxNode nArrc(){
+        SyntaxNode NARRC = new SyntaxNode( , );
 
+        return NARRC;
     }
 
     //NREPT <repstat> ::= repeat ( <asgnlist> ) <stats> until <bool>
     //Special <asgnlist> ::= <alist> | ε
     private static SyntaxNode nRept(){
+        SyntaxNode NREPT = new SyntaxNode( , );
 
+        return NREPT;
     }
 
     //NASGNS <alist> ::= <asgnstat> , <alist>
     //Special <alist> ::= <asgnstat>
-    private static SymbolForTable nAsgns(){
-
+    private static SyntaxNode nAsgns(){
+        SyntaxNode NASGN = new SyntaxNode("NASGN", "NASGN");
+        NASGN.setLeft(nSimv());
+        updateTokens();
+        if(currentToken.getTokenEnumString().equals("TIDEN")){
+            if(lookAheadToken.getTokenEnumString().equals("TPLUS")){
+                NASGN.setRight(nAdd());
+            }
+            if(lookAheadToken.getTokenEnumString().equals("TMINS")){//token for subtraction
+                NASGN.setRight(nSub());
+            }
+            if(lookAheadToken.getTokenEnumString().equals("TDIVD")){//token for division
+                NASGN.setRight(nDiv());
+            }
+            if(lookAheadToken.getTokenEnumString().equals("TSTAR")){//token for multiplication
+                NASGN.setRight(nMul());
+            }
+            if(lookAheadToken.getTokenEnumString().equals("TPERC")){//token for modulos
+                NASGN.setRight(nMod());
+            }
+            if(lookAheadToken.getTokenEnumString().equals("TCART")){//token for power
+                NASGN.setRight(nPow());
+            }
+        }
     }
 
     //NIFTH <ifstat> ::= if ( <bool> ) <stats> end
     //NIFTE <ifstat> ::= if ( <bool> ) <stats> else <stats> end
-    private static SymbolForTable nIft_(){
+    private static SyntaxNode nIft_(){
+        SyntaxNode NIFT_ = new SyntaxNode( , );
 
+        return NIFT_;
     }
 
     //NASGN <asgnop> ::= =
@@ -268,20 +363,34 @@ public class NonTerminalMethods {
     //NMNEQ <asgnop> ::= -=
     //NSTEA <asgnop> ::= *=
     //NDVEQ <asgnop> ::= /=
-    private static SymbolForTable asgnOp(){
+    private static SyntaxNode asgnOp(){
+        SyntaxNode ASGNOP = new SyntaxNode( , );
 
+        return ASGNOP;
     }
 
     //NINPUT <iostat> ::= In >> <vlist>
-    private static SymbolForTable nInput(){
-
+    private static SyntaxNode nInput(){
+        SyntaxNode NINPUT = new SyntaxNode("NINPUT", "NINPUT");
+        updateTokens();
+        updateTokens();
+        if(currentToken.getTokenEnumString().equals("TIDEN")){
+            NINPUT.setLeft(nSimv());
+        }
+        return NINPUT;
     }
 
     //NOUTP <iostat> ::= Out << <prlist>
     //NOUTL <iostat> ::= Out << Line
     //NOUTL <iostat> ::= Out << <prlist> << Line
-    private static SymbolForTable nOut_(){
-
+    private static SyntaxNode nOutl(){
+        SyntaxNode NOUTL = new SyntaxNode("NOUTL", "NOUTL");
+        updateTokens();
+        updateTokens();
+        if(currentToken.getTokenEnumString().equals("TIDEN")){
+            NOUTL.setLeft(nSimv());
+        }
+        return NOUTL;
     }
 
 //------------------------------------------------------------------^^cameron^^---------------------------------------------------
