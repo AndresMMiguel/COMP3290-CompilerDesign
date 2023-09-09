@@ -1,3 +1,15 @@
+///////////////////////////////////////////////////////////////////////////////
+
+// Title:           SyntaxNode
+// Files:           SyntaxNode.java, SymbolForTable.java, CD23Parser.java, NonTerminalMethods.java
+// Semester:        Semester 2 2023
+//Course:           COMP3290 COMPILER DESIGN
+// Authors:         Cameron Swift (c3445524)
+//                  Andres Moreno Miguel (c3465977)
+// Info:            This class 
+
+///////////////////////////////////////////////////////////////////////////////
+
 public class SyntaxNode {
     
     //one child: left only

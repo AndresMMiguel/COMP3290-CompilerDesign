@@ -1,3 +1,15 @@
+///////////////////////////////////////////////////////////////////////////////
+
+// Title:           Symbol Table
+// Files:           SyntaxNode.java, SymbolForTable.java, CD23Parser.java, NonTerminalMethods.java
+// Semester:        Semester 2 2023
+//Course:           COMP3290 COMPILER DESIGN
+// Authors:         Cameron Swift (c3445524)
+//                  Andres Moreno Miguel (c3465977)
+// Info:            This
+
+///////////////////////////////////////////////////////////////////////////////
+
 public class SymbolForTable {
     //id[0] line[1] col[2] type[3] base[4]  offset[5]  glyph[6]
     private String id;

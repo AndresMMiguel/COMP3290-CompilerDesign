@@ -1,3 +1,15 @@
+///////////////////////////////////////////////////////////////////////////////
+
+// Title:           Grammar Methods
+// Files:           SyntaxNode.java, SymbolForTable.java, CD23Parser.java, NonTerminalMethods.java
+// Semester:        Semester 2 2023
+//Course:           COMP3290 COMPILER DESIGN
+// Authors:         Cameron Swift (c3445524)
+//                  Andres Moreno Miguel (c3465977)
+// Info:            This class contains all the recursive methods to build the parser tree and fill the symbol table
+
+///////////////////////////////////////////////////////////////////////////////
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -14,7 +26,7 @@ public class NonTerminalMethods {
     private static Token currentToken;
     private static Token lookAheadToken;
     private static Stack<Token> tokenStack;
-    Map<String, SymbolForTable> symbolTable = new HashMap<>();
+    private static HashMap<String, SymbolForTable> symbolTable = new HashMap<>();
 
 
     public static void transferTokensToStack(ArrayList<Token> tokenList){
@@ -27,7 +39,7 @@ public class NonTerminalMethods {
     }
 
         //updates current token
-        private static void updateCurrnetToken(){
+        private static void updateCurrentToken(){
             currentToken = tokenStack.pop();
         }
     
@@ -37,12 +49,12 @@ public class NonTerminalMethods {
         }
     
     public static HashMap superMethod(){
-        updateCurrnetToken();
+        updateCurrentToken();
         peekNextToken();
         //calls methods from within
         //obatin symbol
         //insert symbolfortable into hashmap
-        //return hashmap;
+        return symbolTable;
     }
 
     //NPROG <program> ::= CD23 <id> <globals> <funcs> <mainbody>
@@ -145,78 +157,360 @@ public class NonTerminalMethods {
     //NOUTL <iostat> ::= Out << <prlist> << Line
 //------------------------------------------------------------------^^cameron^^---------------------------------------------------
 //-------------------------->>Andres<<------------------------------------------------------------------------------------------------
-    //NCALL <callstat> ::= <id> ( <elist> ) | <id> ( )
+    //NCALL <callstat> ::= <id> ( <elist> ) | <id> ( ) is the same as NFCALL (already done)
+    private void callstat(){
+        if(lookAheadToken.getTokenEnumString().equals("TIDEN")){
+            updateCurrentToken();
+            peekNextToken();
+            // Store identifier in the symbol table
+            if(lookAheadToken.getTokenEnumString().equals("(")){
+                updateCurrentToken();
+                peekNextToken();
+                if(!lookAheadToken.getTokenEnumString().equals("TRPAR")){
+                    elist();
+                }
+            }
+        }
+    }
 
     //NRETN <returnstat> ::= return void | return <expr>
+    private void returnstat(){
+        if(lookAheadToken.getTokenEnumString().equals("TRETN")){
+            updateCurrentToken();
+            peekNextToken();
+            // Create new node NRETN
+            if(lookAheadToken.getTokenEnumString().equals("TVOID")){
+                updateCurrentToken();
+                peekNextToken();
+                // Store TRETN in symbol table with void return. Do it here?
+            }else{
+                // Store TRETN in symbol table with object return. How to do it, here or in the expr node?
+                expr();
+            }
+        }
+    }
 
     //NVLIST <vlist> ::= <var> , <vlist>
-    //Special <vlist> ::= <var>
+    private void vlist(){
+        // Create new node NVLIST
+        var();
+        optVlist();
+    }
 
-    //NSIMV <var> ::= <id>
-    //NARRV <var> ::= <id>[<expr>] . <id>
-    //NAELT <var> ::= <id>[<expr>]
+    private void var(){
+        if(lookAheadToken.getTokenEnumString().equals("TIDEN")){
+            updateCurrentToken();
+            peekNextToken();
+            // Symbol table - identifier
+            optExpr();
+        }
+    }
+
+    private void optExpr(){
+        if (lookAheadToken.getTokenEnumString().equals("[")){
+            updateCurrentToken();
+            peekNextToken();
+            expr();
+            optId();
+        }else{  //NSIMV <var> ::= <id>
+            // Create new node NSIMV
+        }
+    }
+    
+    private void optId(){
+        if (lookAheadToken.getTokenEnumString().equals(".")){   //NARRV <var> ::= <id>[<expr>] . <id>
+            updateCurrentToken();
+            peekNextToken();
+            if(lookAheadToken.getTokenEnumString().equals("TIDEN")){
+                updateCurrentToken();
+                peekNextToken();
+                // Symbol table - identifier
+                // Create new node NARRV
+            }
+        }else{  //NAELT <var> ::= <id>[<expr>]
+            // Create new node NAELT
+        }
+    }  
+
+    private void optVlist(){
+        if(lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            vlist();
+        }
+        // If no condition satisfied, then let's suppose optVlist == epsilon (Special <vlist> ::= <var>)
+    }
 
     //NEXPL <elist> ::= <bool> , <elist>
-    //Special <elist> ::= <bool>
+    private void elist(){
+        bool();
+        optElist();
+        // Create new node NEXPL
+    }
 
-    //NBOOL <bool> ::= <bool><logop> <rel>
-    //Special <bool> ::= <rel>
+    private void optElist(){
+        if(lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            updateCurrentToken();
+            peekNextToken();
+            elist();
+        }
+        // If no condition satisfied, then let's suppose optElist == epsilon (Special <elist> ::= <bool>)
+    }
+
+    //NBOOL <bool> ::= <bool> <logop> <rel> 
+    private void bool(){
+        updateCurrentToken();
+        peekNextToken();
+        // Create new node NBOOL
+        rel();
+        bool2();
+    }
+
+    private void bool2(){
+        if(lookAheadToken.getTokenEnumString().equals("TTAND") ||
+        lookAheadToken.getTokenEnumString().equals("TTTOR") ||
+        lookAheadToken.getTokenEnumString().equals("TTXOR")){
+            logop();
+            rel();
+            bool2();
+        }
+        // If no condition satisfied, then let's suppose bool' == epsilon (Special <bool> ::= <rel>)
+    }
 
     //NNOT <rel> ::= ! <expr> <relop> <expr>
-    //Special <rel> ::= <expr> <relop><expr>
-    //Special <rel> ::= <expr>
+    private void rel(){
+        if(lookAheadToken.getTokenEnumString().equals("!")){
+            updateCurrentToken();
+            peekNextToken();
+            // Create new node NNOT
+            expr();
+            relop();
+            expr();
+        }else{
+            expr();
+            optRel();
+        }
+    }
 
-    //NAND <logop> ::= &&
+    private void optRel(){
+        if(lookAheadToken.getTokenEnumString().equals("TEQEQ") ||   //Special <rel> ::= <expr> <relop><expr>
+        lookAheadToken.getTokenEnumString().equals("TNEQL") ||
+        lookAheadToken.getTokenEnumString().equals("TGRTR") ||
+        lookAheadToken.getTokenEnumString().equals("TLESS") ||
+        lookAheadToken.getTokenEnumString().equals("TLEQ") ||
+        lookAheadToken.getTokenEnumString().equals("TGEQL")){
+            relop();
+            expr();
+        }
+        // If no condition satisfied, then let's suppose optRel == epsilon (Special <rel> ::= <expr>)
+    }
 
-    //NOR <logop> ::= ||
+    
+    private void logop(){
+        switch(lookAheadToken.getTokenEnumString()){
+            case "TTAND":   //NAND <logop> ::= &&
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NAND
+            break;
 
-    //NXOR <logop> ::= &|
+            case "TTTOR":   //NOR <logop> ::= ||
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NOR
+            break;
 
-    //NEQL <relop> ::= ==
+            case "TTXOR":   //NXOR <logop> ::= &|
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NXOR
+            break;
 
-    //NNEQ <relop> ::= !=
+            default:
+            break;
+        }
+    }
 
-    //NGRT <relop> ::= >
-    //NGEQ <relop> ::= >=
+    private void relop(){
+        switch(lookAheadToken.getTokenEnumString()){
+            case "TEQEQ":   //NEQL <relop> ::= ==
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NEQL
+            break;
 
-    //NLSS <relop> ::= <
-    //NLEQ <relop> ::= <=
+            case "TNEQL":   //NNEQ <relop> ::= !=
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NOR
+            break;
 
-    //NADD <expr> ::= <expr> + <term>
-    //NSUB <expr> ::= <expr> - <term>
+            case "TGRTR":   //NGRT <relop> ::= >
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NXOR
+            break;
+            case "TLESS":   //NLSS <relop> ::= <
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NXOR
+            break;
+            case "TLEQ":   //NLEQ <relop> ::= <=
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NXOR
+            break;
+            case "TGEQL":   //NGEQ <relop> ::= >=
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NXOR
+            break;
 
-    //Special <expr> ::= <term>
-    //NMUL <term> ::= <term> * <fact>
-    //NDIV <term> ::= <term> / <fact>
-    //NMOD <term> ::= <term> % <fact>
-    //Special <term> ::= <fact>
+            default:
+            break;
+        }
+    }    
 
-    //NPOW <fact> ::= <fact> ^ <exponent>
+    // Special <expr> ::= <term> <expr'>
+    private void expr(){
+        term();
+        expr2();
+    }
+
+    //Function for the grammar productions of expr'
+    private void expr2 (){
+        if (lookAheadToken.getTokenEnumString().equals("+")){   //NADD <expr'> ::= + <term> <expr'>
+            updateCurrentToken();
+            peekNextToken();
+            // Create new node NADD
+            term();
+            expr2();
+        }else if (lookAheadToken.getTokenEnumString().equals("-")){  //NSUB <expr> ::= <expr> - <term>
+            updateCurrentToken();
+            peekNextToken();
+            // Create new node NSUB
+            term();
+            expr2();
+        }
+        // If no condition satisfied, then let's suppose expr' == epsilon (Special <expr> ::= <term>)
+    }
+
+    //Special <term> ::= <fact> <term'>
+    private void term(){
+        fact();
+        term2();
+    }
+
+    // Function for the grammar productions of term'
+    private void term2(){
+        if (lookAheadToken.getTokenEnumString().equals("*")){   //NMUL <term> ::= <term> * <fact>
+            updateCurrentToken();
+            peekNextToken();
+            // Create new node NMUL
+            fact();
+            term2();
+        }else if (lookAheadToken.getTokenEnumString().equals("/")){ //NDIV <term> ::= <term> / <fact>
+            updateCurrentToken();
+            peekNextToken();
+            // Create new node NDIV
+            fact();
+            term2();
+        }else if (lookAheadToken.getTokenEnumString().equals("%")){ //NMOD <term> ::= <term> % <fact>
+            updateCurrentToken();
+            peekNextToken();
+            // Create new node NMOD
+            fact();
+            term2();
+        }
+        // If no condition satisfied, then let's suppose term' == epsilon (Special <term> ::= <fact>)
+    }
+    
     //Special <fact> ::= <exponent>
+    private void fact(){
+        exponent();
+        fact2();
+    }
 
-    //Special <exponent> ::= <var>
+    // Function for the grammar productions of fact'
+    private void fact2(){
+        if(lookAheadToken.getTokenEnumString().equals("^")){    //NPOW <fact> ::= <fact> ^ <exponent>
+            updateCurrentToken();
+            peekNextToken();
+            // Create new node NPOW
+            exponent();
+            fact2();
+        }
+        // If no condition satisfied, then let's suppose fact' == epsilon (Special <fact> ::= <exponent>)
+    }
 
-    //NILIT <exponent> ::= <intlit>
+    private void exponent(){
+        switch(lookAheadToken.getTokenEnumString()){
+            case "TIDEN":   //Special <exponent> ::= <var> or Special <exponent> ::= <fncall>
+            updateCurrentToken();
+            peekNextToken();
+            var();
+            break;
 
-    //NFLIT <exponent> ::= <reallit>
+            case "TILIT":   //NILIT <exponent> ::= <intlit>
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NILIT
+            break;
 
-    //Special <exponent> ::= <fncall>
+            case "TFLIT":   //NFLIT <exponent> ::= <reallit>
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NFLIT
+            break;
 
-    //NTRUE <exponent> ::= true
+            case "TTRUE":   //NTRUE <exponent> ::= true
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NTRUE
+            break;
 
-    //NFALS <exponent> ::= false
+            case "TFALS":   //NFALS <exponent> ::= false
+                updateCurrentToken();
+                peekNextToken();
+                // Create new node NFALS
+            break;
 
-    //Special <exponent> ::= ( <bool> )
-
-    //NFCALL <fncall> ::= <id> ( <elist> ) | <id> ( )
+            case "(":   //Special <exponent> ::= ( <bool> )
+                updateCurrentToken();
+                peekNextToken();
+                bool();
+            break;
+        }
+    }  
 
     //NPRLST <prlist> ::= <printitem> , <prlist>
-    //Special <prlist> ::= <printitem>
+    private void prlist(){
+        // Create new node NPRLST
+        printitem();
+        optprlist();
+    }
 
-    //Special <printitem> ::= <expr>
+    private void printitem(){
+        if(lookAheadToken.getTokenEnumString().equals("TSTRG")){    //NSTRG <printitem> ::= <string>
+            updateCurrentToken();
+            peekNextToken();
+            // Create new node NSTRG
+            // Symbol table - string
+        }else{
+            expr(); //Special <printitem> ::= <expr>
+        }
+    }
 
-    //NSTRG <printitem> ::= <string>
+    private void optprlist(){
+        if(lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            updateCurrentToken();
+            peekNextToken();
+            prlist();
+        }
+        // If no condition satisfied, then let's suppose optprlist == epsilon (Special <prlist> ::= <printitem>)
+    }
 }
+
+
+
 
 
 /*
@@ -264,7 +558,7 @@ Also need the following:
     S() {
         if (lookahead == a ) { match(a);B(); } S → a B
         else if (lookahead == b) { match(b); C(); } S → b C
-        else error(“expecting a or b”);
+        else error("expecting a or b");
     }
 
     B() {
