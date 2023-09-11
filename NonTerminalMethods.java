@@ -19,6 +19,12 @@ public class NonTerminalMethods {
     private static boolean parenthOpen = false;
     private static String holdTIDEN;
 
+    private static void handleError(){
+        System.out.println("syntax error has occured at line:"+currentToken.getLineNumber()+ " col:"+currentToken.getColumnNumber());
+        while(!currentToken.getTokenEnumString().equals("TSEMI")){
+            updateTokens();
+        }
+    }
 
     public static void transferTokensToStack(ArrayList<Token> tokenList){
         int arrayLength = tokenList.size();
