@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 
 class CD23Scanner {
 
-    private static String path = "C:\\Users\\cswif\\Desktop\\compilerdesign\\scripts\\assignment1\\a-2.txt";
+    private static String path = "C:\\Users\\cswif\\Desktop\\compilerdesign\\scripts\\assignment1\\array.txt";
     private static String file;
     private static int charNum;
     private static int line;

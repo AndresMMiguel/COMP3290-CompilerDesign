@@ -12,15 +12,15 @@ import java.util.Map;
 
 public class CD23Parser {
     private static CD23Scanner scanner = new CD23Scanner();
-    private static String[] scannerArgs = {"C:\\Users\\cswif\\Desktop\\compilerdesign\\scripts\\assignment1\\a-2.txt"};
+    private static String[] scannerArgs = {"C:\\Users\\cswif\\Desktop\\compilerdesign\\scripts\\assignment1\\array.txt"};
     private static ArrayList<Token> tokenList;
-    private static NonTerminalMethods nonTerminalMethods = new NonTerminalMethods();
+    //private static NonTerminalMethods nonTerminalMethods = new NonTerminalMethods();
     private static Map<String, SymbolForTable> symbolTable = new HashMap<>();
 
     public static void main (String[] args) throws IOException{
         tokenList = CD23Scanner.main(scannerArgs);
-        NonTerminalMethods.transferTokensToStack(tokenList);
-        symbolTable = NonTerminalMethods.superMethod();
+        //NonTerminalMethods.transferTokensToStack(tokenList);
+        //symbolTable = NonTerminalMethods.superMethod();
 
     }
 }
