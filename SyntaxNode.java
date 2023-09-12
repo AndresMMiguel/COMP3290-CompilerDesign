@@ -14,30 +14,36 @@ public class SyntaxNode {
     
     //one child: left only
     //two children: left & right
+    private String nodeValue;
     private String symbolValue;
     private String symbolType;
     private SyntaxNode left;
     private SyntaxNode middle;
     private SyntaxNode right;
 
-    public SyntaxNode(String value, String type){
-        this.symbolValue = value;
+    public SyntaxNode(String nodeValue, String symbolValue, String type){
+        this.nodeValue = nodeValue;
+        this.symbolValue = symbolValue;
         this.symbolType = type;
         left = null;
         middle = null;
         right = null;
     }
 
-    public void setLeft(SyntaxNode right){
-        this.right = right;
+    public void setLeft(SyntaxNode left){
+        this.left = left;
     }
 
-    public void setMIddle(SyntaxNode middle){
+    public void setMiddle(SyntaxNode middle){
         this.middle = middle;
     }
 
     public void setRight(SyntaxNode right){
         this.right = right;
+    }
+
+    public String getNodeValue(){
+        return this.nodeValue;
     }
 
     public SyntaxNode getLeft(){

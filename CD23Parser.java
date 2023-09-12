@@ -27,12 +27,17 @@ public class CD23Parser {
     private static String[] scannerArgs = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/CD23Example.txt"};
     private static ArrayList<Token> tokenList;
     private static NonTerminalMethods nonTerminalMethods = new NonTerminalMethods();
-    private static Map<String, SymbolForTable> symbolTable = new HashMap<>();
+    private static ArrayList<SyntaxNode> nodeList;
+    // private static Map<String, SymbolForTable> symbolTable = new HashMap<>();
 
     public static void main (String[] args) throws IOException{
+        if (args.length > 0)
+            scannerArgs = args;
         tokenList = scanner.main(scannerArgs);
         nonTerminalMethods.transferTokensToStack(tokenList);
-        symbolTable = nonTerminalMethods.superMethod();
-
+        nodeList = nonTerminalMethods.superMethod();
+        for(SyntaxNode node:nodeList){
+            System.out.println(node.getNodeValue());
+        }
     }
 }

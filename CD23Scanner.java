@@ -332,6 +332,12 @@ class CD23Scanner {
         }
 
         tokenList.add(token.returnTEOF(line, column));
+        // printTokens();
+        return tokenList;
+    }
+
+    // Function to print the tokens from the scanner as per spec in assignment 1
+    private static void printTokens(){
         int printCounter = 0;
         Token undefinded = token.returnUndefinedToken("",line,column);
         Token stringLit = token.returnStringToken("",line,column);
@@ -371,6 +377,5 @@ class CD23Scanner {
                 System.out.println("lexical error (" + token.getLineNumber() + "," + token.getColumnNumber() + ") : " + message);
             }
         }
-        return tokenList;
     }
 }
