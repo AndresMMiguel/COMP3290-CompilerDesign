@@ -377,6 +377,5 @@ class CD23Scanner {
                 System.out.println("lexical error (" + token.getLineNumber() + "," + token.getColumnNumber() + ") : " + message);
             }
         }
-        return tokenList;
     }
 }
