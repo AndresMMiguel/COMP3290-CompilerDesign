@@ -1,3 +1,15 @@
+///////////////////////////////////////////////////////////////////////////////
+
+// Title:           Symbol Table
+// Files:           SyntaxNode.java, SymbolForTable.java, CD23Parser.java, NonTerminalMethods.java
+// Semester:        Semester 2 2023
+//Course:           COMP3290 COMPILER DESIGN
+// Authors:         Cameron Swift (c3445524)
+//                  Andres Moreno Miguel (c3465977)
+// Info:            This
+
+///////////////////////////////////////////////////////////////////////////////
+
 public class SymbolForTable {
     //id[0] line[1] col[2] type[3] base[4]  offset[5]  glyph[6]
     private String id;
@@ -15,13 +27,11 @@ id:integer   Line:   Col:   Type:Keyword   Base:   Offset:   Glyph:"integer"
 id:real      Line:   Col:   Type:Keyword   Base:   Offset:   Glyph:"real"
 id:boolean   Line:   Col:   Type:Keyword   Base:   Offset:   Glyph:"boolean"
 //user id's literals
-id:Week7     Line:1  Col:6  Type:          Base:   Offset:   Glypth:"week7"
-id:i         Line:4  Col:5  Type:integer   Base:   Offset:   Glypth:"i"
-id:j         Line:4  Col:16 Type:integer   Base:   Offset:   Glypth:"j"
-id:k         Line:4  Col:27 Type:integer   Base:   Offset:   Glypth:"k"
+id:Week7     Line:1  Col:6  Type:          Base:   Offset:   GLypth:"week7"
+id:i         Line:4  Col:5  Type:integer   Base:   Offset:   GLypth:"i"
+id:j         Line:4  Col:16 Type:integer   Base:   Offset:   GLypth:"j"
+id:k         Line:4  Col:27 Type:integer   Base:   Offset:   GLypth:"k"
 */
-
-//look into offset as the scope potentially????
     public SymbolForTable(String id, Integer line, Integer col, String type, String glyph){
         this.id = id;
         this.line = line;
@@ -53,5 +63,4 @@ id:k         Line:4  Col:27 Type:integer   Base:   Offset:   Glypth:"k"
     public String getGlyph(){
         return glyph;
     }
-
 }
