@@ -27,9 +27,8 @@ public class NonTerminalMethods {
     private static Token lookAheadToken;
     private static Stack<Token> tokenStack = new Stack<Token>();
     private static HashMap<String, SymbolForTable> symbolTable = new HashMap<>();
-    private static SyntaxNode parent;
     private static SyntaxNode node;
-    private static ArrayList<SyntaxNode> nodeList = new ArrayList<SyntaxNode>();
+
 
 
     public static void transferTokensToStack(ArrayList<Token> tokenList){
@@ -47,7 +46,7 @@ public class NonTerminalMethods {
             lookAheadToken = tokenStack.peek();
         }
 
-        // creates child in the vacant position
+        // creates node child in the vacant position
         private static void createChild (SyntaxNode parent, SyntaxNode child){
             if (parent.getLeft() == null){
                 parent.setLeft(child);
@@ -59,57 +58,27 @@ public class NonTerminalMethods {
             }
         }
     
-        public ArrayList<SyntaxNode> superMethod (){
+        private static void burnTokens(){
+            boolean keepBurning = true;
+            while(keepBurning == true){
+                updateTokens();
+                if(currentToken.getTokenEnumString().equals("TBEGN")){
+                    keepBurning = false;
+                }
+                if(currentToken.getTokenEnumString().equals("TSEMI")){
+                    keepBurning = false;
+                }
+                if(currentToken.getTokenEnumString().equals("TMAIN")){
+                    keepBurning = false;
+                }
+                if(currentToken.getTokenEnumString().equals("TFUNC")){
+                    keepBurning = false;
+                }
+            }
+        }
+        public void superMethod (){
             updateTokens();
             nprog();
-            return nodeList;
-        }
-
-        private static void burnTokens(){
-            while(!currentToken.getTokenEnumString().equals("TSEMI")){
-                updateTokens();
-            }
-        }
-
-        private static void handleError(int errorCode){
-            if(errorCode == 1){
-                System.out.println("Error: Your program must start with 'CD23'");
-            }
-            if(errorCode == 2){
-                System.out.println("Error: Expected an identifier in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
-            }
-            if(errorCode == 3){
-                System.out.println("Error: Expected globals in line: " + lookAheadToken.getLineNumber());
-            }
-            if(errorCode == 4){
-                System.out.println("Error: Expected keyword 'is' in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
-            }
-            if(errorCode == 5){
-                System.out.println("Error: Expected global variable initialization in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
-                node = new SyntaxNode("NUNDF", null, null);
-            }
-            if(errorCode == 6){
-                System.out.println("Error: Expected functions after globals, in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
-            }
-            if(errorCode == 7){
-                System.out.println("Error: Expected main after functions, in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
-            }
-            if(errorCode == 8){
-                System.out.println("Error: Expected a valid parameter");
-            }
-            if(errorCode == 9){
-                System.out.println("Error: Expected left parenthesis");
-            }
-            if(errorCode == 10){
-                System.out.println("Error: Expected an identifier");
-            }
-            if(errorCode == 11){
-                System.out.println("Error: Expected a variable in line " + currentToken.getLineNumber());
-            }
-            if(errorCode == 12){
-                System.out.println("Error: Expected an array identifier in line " + currentToken.getLineNumber());
-            }
-            burnTokens();
         }
 
 
@@ -118,17 +87,18 @@ public class NonTerminalMethods {
         if(currentToken.getTokenEnumString().equals("TCD23")){
             if(lookAheadToken.getTokenEnumString().equals("TIDEN")){
                 updateTokens();
-                parent = new SyntaxNode("NPROG", currentToken.getLexeme(), currentToken.getTokenEnumString());
-                nodeList.add(parent);
-                //create symboltable entry-----------------------------------------
-                globals(parent);
-                funcs(parent);
-                mainbody(parent);
+                node = new SyntaxNode("NPROG", currentToken.getLexeme(), currentToken.getTokenEnumString());
+
+                globals(node);
+                funcs(node);
+                mainbody(node);
             }else{
-                handleError(2);
+                System.out.println("Error: Expected an identifier in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
+                burnTokens();
             }
         }else{
-            handleError(1);
+            System.out.println("Error: Your program must start with 'CD23'");
+            burnTokens();
         }
     }
     
@@ -140,13 +110,12 @@ public class NonTerminalMethods {
             if(parent.getLeft() == null){
                 node = new SyntaxNode("NGLOB", lookAheadToken.getLexeme(), lookAheadToken.getTokenEnumString());
                 parent.setLeft(node);
-                nodeList.add(node);
-                //create symboltable entry-----------------------------------------
                 consts(node);
                 types(node);
                 arrays(node);
             }else{
-                handleError(3);
+                System.out.println("Error: Expected globals in line: " + lookAheadToken.getLineNumber());
+                burnTokens();
             }
         }
     }
@@ -171,15 +140,12 @@ public class NonTerminalMethods {
                 parent.setLeft(node);
             }
             node.setLeft(temp);
-            nodeList.add(node);
-            nodeList.add(temp);
             initlist(node);
         }else if (parent.getLeft() == null){
             parent.setLeft(temp);
-            nodeList.add(temp);
         }else{
             parent.setRight(temp);
-            nodeList.add(temp);
+            
         }
     }
 
@@ -193,10 +159,13 @@ public class NonTerminalMethods {
                 // expr(node);
                 updateTokens();
             }else{
-                handleError(4);
+                System.out.println("Error: Expected keyword 'is' in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
+                burnTokens();
             }
         }else{
-            handleError(5);
+            System.out.println("Error: Expected global variable initialization in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
+            node = new SyntaxNode("NUNDF", null, null);
+            burnTokens();
         }
         return node;
     }
@@ -211,24 +180,23 @@ public class NonTerminalMethods {
 
     //Special <arrays> ::= arrays <arrdecls> | ε
     private void arrays(SyntaxNode parent){
-        
+        if (lookAheadToken.getTokenEnumString().equals("TARRS")){
+            updateTokens();
+            arrdecls(parent);
+        }
     }
 
     //NFUNCS <funcs> ::= <func> <funcs>
     //Special <funcs> ::= ε
     private void funcs(SyntaxNode parent){
-        if (lookAheadToken.getTokenEnumString().equals("TFUNC")){     // if there are functions
+        SyntaxNode temp = func();
+        if (lookAheadToken.getTokenEnumString().equals("TFUNC")){
             node = new SyntaxNode("NFUNCS", null, null);
-            //create symboltable entry-----------------------------------------
-            if(parent.getLeft() == null){                
-                parent.setLeft(node);
-            }else if (parent.getLeft().getNodeValue() != "NGLOB"){
-                handleError(6);
-            }else{
-                parent.setRight(node);
-            }
-            nodeList.add(node);
+            createChild(parent, node);
+            createChild(node, temp);
+            funcs(node);
         }
+        createChild(parent, temp);
     }
 
     //NMAIN <mainbody> ::= main <slist> begin <stats> end CD23 <id>
@@ -240,12 +208,13 @@ public class NonTerminalMethods {
             }else if (parent.getRight() == null){
                 parent.setRight(node);
             }else if (parent.getRight().getNodeValue() != "NFUNC"){
-                handleError(7);
+                System.out.println("Error: Expected main after functions, in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
+                burnTokens();
             }else{
                 parent.setMiddle(parent.getRight());
                 parent.setRight(node);
             }
-            nodeList.add(node);
+            
          }
     }
 
@@ -257,25 +226,12 @@ public class NonTerminalMethods {
     private void typelist(SyntaxNode parent){
         SyntaxNode temp = type();
         if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-            updateTokens();
-            if (lookAheadToken.getTokenEnumString().equals("TTTIS")){
-                String type = currentToken.getLexeme();
-                String lexeme = currentToken.getTokenEnumString();
-                updateTokens();
-                if (lookAheadToken.getTokenEnumString().equals("TARAY")){   //NATYPE <type> ::= <typeid> is array [ <expr> ] of <structid> end
-                    updateTokens();
-                    node = new SyntaxNode("NATYPE", lexeme, type);
-                    nodeList.add(node);
-                    if (lookAheadToken.getTokenEnumString().equals("[")){
-                        updateTokens();
-                        // expr(node);
-                        updateTokens();
-                    }
-                }else{                      //NRTYPE <type> ::= <structid> is <fields> end
-                    fields();
-                }
-            }
+            node = new SyntaxNode("TTYPEL", null, null);
+            createChild(parent, node);
+            createChild(node, temp);
+            typelist(node);
         }
+        createChild(parent, temp);
     }
 
     private SyntaxNode type(){
@@ -288,57 +244,203 @@ public class NonTerminalMethods {
                 if (lookAheadToken.getTokenEnumString().equals("TARAY")){   //NATYPE <type> ::= <typeid> is array [ <expr> ] of <structid> end
                     updateTokens();
                     node = new SyntaxNode("NATYPE", lexeme, type);
-                    if (lookAheadToken.getTokenEnumString().equals("[")){
+                    if (lookAheadToken.getTokenEnumString().equals("TLBRK")){
                         updateTokens();
-                        // expr(node);
-                        updateTokens();
-                    }
+                        expr(node);
+                        if (lookAheadToken.getTokenEnumString().equals("TRBRK")){
+                            updateTokens();
+                            if (lookAheadToken.getTokenEnumString().equals("TTTOF")){
+                                updateTokens();
+                                if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
+                                    updateTokens();
+                                    // Symbol table: structid of the array
+                                    if (lookAheadToken.getTokenEnumString().equals("TTEND")){
+                                        updateTokens();
+                                    }// Error
+                                }// Error
+                            }// Error
+                        }// Error
+                    }// Error
                     return node;
                 }else{                      //NRTYPE <type> ::= <structid> is <fields> end
                     node = new SyntaxNode("NRTYPE", lexeme, type);
-                    fields();
-                    return node;
-                }
+                    fields(node);
+                    if (lookAheadToken.getTokenEnumString().equals("TTEND")){
+                        updateTokens();
+                        return node;
+                    }
+                }        
             }
         }
+        node = new SyntaxNode("NUNDF", null, null);
+        return node;
     }
+
     //NFLIST <fields> ::= <sdecl> , <fields>
     //Special <fields> ::= <sdecl>
-    private void fields(){
+    private void fields(SyntaxNode parent){
+        SyntaxNode temp = sdecl(declPrefix());
+        optFields(temp, parent);
+    }
 
+    private void optFields(SyntaxNode child, SyntaxNode parent){
+        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            node = new SyntaxNode("NFLIST", null, null);
+            createChild(parent, node);
+            createChild(node, child);
+            fields(node);
+        }
+        createChild(parent, child);
+    }
+
+    private String[] declPrefix (){
+        String[]tokenInfo = new String[2];
+        if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
+            updateTokens();
+            if(lookAheadToken.getTokenEnumString().equals("TCOLN")){
+                tokenInfo[0] = currentToken.getLexeme();
+                tokenInfo[1] = currentToken.getTokenEnumString();
+                updateTokens();
+            }//Error
+        }//Error
+        return tokenInfo;
     }
 
     //NSDECL <sdecl> ::= <id> : <stype>
-    //create symboltable entry-----------------------------------------
+    private SyntaxNode sdecl(String[]identInfo){
+        node = new SyntaxNode("NSDECL", identInfo[0], identInfo[1]);
+        stype();
+        return node;
+    }
 
     //NALIST <arrdecls> ::= <arrdecl> , <arrdecls>
     //Special <arrdecls> ::= <arrdecl>
-    //create symboltable entry-----------------------------------------
+    private void arrdecls(SyntaxNode parent){
+        SyntaxNode node = arrdecl(declPrefix());
+        optArrdecl(parent, node);
+    }
 
     //NARRD <arrdecl> ::= <id> : <typeid>
-    //create symboltable entry-----------------------------------------
+    private SyntaxNode arrdecl(String[]identInfo){
+        node = new SyntaxNode("NUNDF", null, null);
+        if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
+            updateTokens();
+            node = new SyntaxNode("NARRD", identInfo[0], identInfo[1]);
+        }// Error
+        return node;
+    }
+
+    private void optArrdecl (SyntaxNode parent, SyntaxNode child){
+        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            updateTokens();
+            node = new SyntaxNode("NALIST", null, null);
+            createChild(parent, node);
+            createChild(node, child);
+            arrdecls(node);
+        }else{
+            createChild(parent, child);
+        }
+    }
 
     //NFUND <func> ::= func <id> ( <plist> ) : <rtype> <funcbody>
+    private SyntaxNode func(){
+        node = new SyntaxNode("NUNDF", null, null);
+        if (lookAheadToken.getTokenEnumString().equals("TFUNC")){
+            updateTokens();
+            if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
+                updateTokens();
+                node = new SyntaxNode("NFUND", currentToken.getLexeme(), currentToken.getTokenEnumString());
+                if (lookAheadToken.getTokenEnumString().equals("TLPAR")){
+                    updateTokens();
+                    plist(node);
+                    if (lookAheadToken.getTokenEnumString().equals("TRPAR")){
+                        updateTokens();
+                        if (lookAheadToken.getTokenEnumString().equals("TCOLN")){
+                            updateTokens();
+                            rtype();
+                            funcbody(parent);
+                        }
+                    }
+                }
+            }// Error
+        }// Error
+        return node;
+    }
 
     //Special <rtype> ::= <stype> | void
+    private void rtype(){
+        if (lookAheadToken.getTokenEnumString().equals("TVOID")){
+            updateTokens();
+        }else{
+            stype();
+        }
+    }
 
     //Special <plist> ::= <params> | ε
+    private void plist(SyntaxNode parent){
+        if (lookAheadToken.getTokenEnumString().equals("TIDEN") ||
+        lookAheadToken.getTokenEnumString().equals("TCNST")){
+            params(parent);
+        }
+    }
 
     //NPLIST <params> ::= <param> , <params>
     //Special <params> ::= <param>
+    private void params (SyntaxNode parent){
+        node = param();
+        optParams(parent, node);
+    }
 
-    //NSIMP <param> ::= <sdecl>
-    //create symboltable entry-----------------------------------------
+    private SyntaxNode param (){
+        if (lookAheadToken.getTokenEnumString().equals("TCNST")){       //NARRC <param> ::= const <arrdecl>
+            updateTokens();
+            node = new SyntaxNode("NARRC", null, null);
+            SyntaxNode temp = arrdecl(declPrefix());
+            createChild(node, temp);
+        }else{
+            if (lookAheadToken.getTokenEnumString().equals("TINT") ||           //NSIMP <param> ::= <sdecl>
+            lookAheadToken.getTokenEnumString().equals("TREAL") ||
+            lookAheadToken.getTokenEnumString().equals("TBOOL")){
+                node = new SyntaxNode("NSIMP", null, null);
+                SyntaxNode temp = sdecl(declPrefix());
+                createChild(node, temp);
+            }else{                                                              //NARRP <param> ::= <arrdecl>
+                node = new SyntaxNode("NARRP", null, null);
+                SyntaxNode temp = arrdecl(declPrefix());
+                createChild(node, temp);
+            }
+        }
+        return node;
+    }
 
-    //NARRP <param> ::= <arrdecl>
-    //create symboltable entry-----------------------------------------
+    private void optParams (SyntaxNode parent, SyntaxNode child){
+        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            updateTokens();
+            node = new SyntaxNode("NPLIST", null, null);
+            createChild(parent, node);
+            createChild(node, child);
+            params(node);
+        }
+        createChild(parent, child);
+    }
 
-    //NARRC <param> ::= const <arrdecl>
-    //create symboltable entry-----------------------------------------
 
     //Special <funcbody> ::= <locals> begin <stats> end
+    private void funcbody (SyntaxNode parent){
+        locals(parent);
+        if (lookAheadToken.getTokenEnumString().equals("TBEGN"));{
+            updateTokens();
+            stats(parent);
+            if (lookAheadToken.getTokenEnumString().equals("TTEND")){
+                updateTokens();
+            }// Error
+        }// Error
+    }
 
     //Special <locals> ::= <dlist> | ε
+    private void locals(SyntaxNode parent){
+        
+    }
 
     //NDLIST <dlist> ::= <decl> , <dlist>
     //Special <dlist> ::= <decl>
@@ -346,6 +448,14 @@ public class NonTerminalMethods {
     //Special <decl> ::= <sdecl> | <arrdecl>
 
     //Special <stype> ::= integer | real | boolean
+    private void stype(){
+        if (lookAheadToken.getTokenEnumString().equals("TINTG") ||
+        lookAheadToken.getTokenEnumString().equals("TREAL") ||
+        lookAheadToken.getTokenEnumString().equals("TBOOL")){
+            updateTokens();
+            // Symbol table leaf value
+        }
+    }
 
     //NSTATS <stats> ::= <stat> ; <stats> | <strstat> <stats>
     //Special <stats> ::= <stat>; | <strstat>
@@ -402,13 +512,16 @@ public class NonTerminalMethods {
                     elist(node);
                 }else if(lookAheadToken.getTokenEnumString().equals("TRPAR")){
                 }else{
-                    handleError(8);
+                    System.out.println("Error: Expected a valid parameter");
+                    burnTokens();
                 }
             }else{
-                handleError(9);
+                System.out.println("Error: Expected left parenthesis");
+                burnTokens();
             }
         }else{
-            handleError(10);
+            System.out.println("Error: Expected an identifier");
+            burnTokens();
         }
     }
 
@@ -439,15 +552,15 @@ public class NonTerminalMethods {
                 parent.setLeft(node);
             }
             node.setLeft(temp);
-            nodeList.add(node);
-            nodeList.add(temp);
+            
+            
             optVlist(node);
         }else if (parent.getLeft() == null){
             parent.setLeft(temp);
-            nodeList.add(temp);
+            
         }else{
             parent.setRight(temp);
-            nodeList.add(temp);
+            
         }
         // If no condition satisfied, then let's suppose optVlist == epsilon (Special <vlist> ::= <var>)
     }
@@ -455,11 +568,12 @@ public class NonTerminalMethods {
     private SyntaxNode var(){
         if(lookAheadToken.getTokenEnumString().equals("TIDEN")){
             updateTokens();
-            //create symboltable entry-----------------------------------------
+            // Symbol table - identifier
             node = optExpr();
             return node;
         }else{
-            handleError(11);
+            System.out.println("Error: Expected a variable in line " + currentToken.getLineNumber());
+            burnTokens();
             return new SyntaxNode("TUNDF", null, null);
         }
     }
@@ -471,7 +585,7 @@ public class NonTerminalMethods {
             return optId();
         }else{  //NSIMV <var> ::= <id>
             node = new SyntaxNode("NSIMV", currentToken.getLexeme(), currentToken.getTokenEnumString());
-            // nodeList.add(node);
+            // 
             return node;
         }
     }
@@ -481,11 +595,12 @@ public class NonTerminalMethods {
             updateTokens();
             if(lookAheadToken.getTokenEnumString().equals("TIDEN")){
                 updateTokens();
-                //create symboltable entry-----------------------------------------
+                // Symbol table - identifier
                 node = new SyntaxNode("NARRV", currentToken.getLexeme(), currentToken.getTokenEnumString());
                 return node;
             }else{
-                handleError(12);
+                System.out.println("Error: Expected an array identifier in line " + currentToken.getLineNumber());
+                burnTokens();
                 node = new SyntaxNode("NUNDF", null, null);
                 return node;
             }
@@ -506,15 +621,15 @@ public class NonTerminalMethods {
                 parent.setLeft(node);
             }
             node.setLeft(temp);
-            nodeList.add(node);
-            nodeList.add(temp);
+            
+            
             optVlist(node);
         }else if (parent.getLeft() == null){
             parent.setLeft(temp);
-            nodeList.add(temp);
+            
         }else{
             parent.setRight(temp);
-            nodeList.add(temp);
+            
         }
         // If no condition satisfied, then let's suppose optVlist == epsilon (Special <vlist> ::= <var>)
     }
@@ -649,14 +764,14 @@ public class NonTerminalMethods {
             updateTokens();
             node = new SyntaxNode("NADD", null, null);
             createChild(parent, node);
-            nodeList.add(node);
+            
             term(node);
             expr2(node);
         }else if (lookAheadToken.getTokenEnumString().equals("-")){  //NSUB <expr> ::= <expr> - <term>
             updateTokens();
             node = new SyntaxNode("NSUB", null, null);
             createChild(parent, node);
-            nodeList.add(node);
+            
             term(node);
             expr2(node);
         }
@@ -675,21 +790,21 @@ public class NonTerminalMethods {
             updateTokens();
             node = new SyntaxNode("NMUL", null, null);
             createChild(parent, node);
-            nodeList.add(node);
+            
             fact(node);
             term2(node);
         }else if (lookAheadToken.getTokenEnumString().equals("/")){     //NDIV <term> ::= <term> / <fact>
             updateTokens();
             node = new SyntaxNode("NDIV", null, null);
             createChild(parent, node);
-            nodeList.add(node);
+            
             fact(node);
             term2(node);
         }else if (lookAheadToken.getTokenEnumString().equals("%")){  //NMOD <term> ::= <term> % <fact>
             updateTokens();
             node = new SyntaxNode("NMOD", null, null);
             createChild(parent, node);
-            nodeList.add(node);
+            
             fact(node);
             term2(node);
         }
@@ -708,7 +823,7 @@ public class NonTerminalMethods {
             updateTokens();
             node = new SyntaxNode("NPOW", null, null);
             createChild(parent, node);
-            nodeList.add(node);
+            
             exponent(node);
             fact2(node);
         }
@@ -765,7 +880,7 @@ public class NonTerminalMethods {
             updateTokens(); 
             node = new SyntaxNode("NSTRG", currentToken.getLexeme(), currentToken.getTokenEnumString());
             createChild(parent, node);
-            //create symboltable entry-----------------------------------------
+            // Symbol table - string
         }else{
             expr(parent); //Special <printitem> ::= <expr>
         }
