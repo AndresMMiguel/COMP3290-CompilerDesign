@@ -1,0 +1,14 @@
+CD23 ArrayScript
+main
+  myArray is array [4] of float end
+
+begin
+  myArray[0] = 1.1;
+  myArray[1] = 2.2;
+  myArray[2] = 3.3;
+  myArray[3] = myArray[1] + myArray[4];
+  Out << myArray[3] << Line;
+
+end CD23 ArrayScript
+
+//basic array script

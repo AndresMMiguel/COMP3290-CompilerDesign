@@ -1,0 +1,15 @@
+CD23 SimpleMathFail
+main
+  x : float
+  y : float
+  x : integer
+
+begin
+  x = 22.2;
+  y = 11.1;
+  z = x - y;
+  Out << z << Line 
+
+end CD23 SimpleMathFail
+
+// attempts to assign a float literal to an integer literal

@@ -1,0 +1,19 @@
+CD23 WrongType
+main
+  x : integer
+  y : bool
+  x : integer
+
+begin
+  x = 22;
+  y = 12;
+  z = x - y;
+  if(x >= 10) 
+    Out << x << Line 
+  else 
+    Out << "less than 10" << Line 
+  end
+
+end CD23 WrongType
+
+//attempts to assign integer to a boolean type

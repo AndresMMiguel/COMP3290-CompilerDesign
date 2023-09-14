@@ -1,0 +1,25 @@
+CD23 FunctionParameterPass
+  func fumblingParameters(x : integer) : integer
+    begin
+      x = x + 5;
+      x = interceptParameter(x);
+      return x;
+    end
+
+  func interceptParameter(k: integer): integer
+    begin
+      k = k + (0-4);
+      return k;
+    end
+
+  theBall : integer;
+
+main
+  begin
+    theBall = 1;
+    theBall = fumblingParameters(theBall);
+    Out << theBall << Line;
+
+end CD23 FunctionParameterPass
+
+//basic functions with parameter passing

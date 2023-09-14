@@ -1,0 +1,10 @@
+CD23 SimpleFail
+mian
+  i : boolean
+
+begin
+  i = True;
+
+end CD23 simpleFail
+
+//main is spelled incorrectly

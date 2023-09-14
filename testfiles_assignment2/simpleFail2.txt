@@ -1,0 +1,10 @@
+CD23 Simple
+main
+  i : boolean
+
+begin
+  i = True;
+
+end CD23 sipmle
+
+//CD23 TIDEN do not match

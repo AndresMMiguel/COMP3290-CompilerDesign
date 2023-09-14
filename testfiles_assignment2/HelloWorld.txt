@@ -1,0 +1,12 @@
+CD23 HelloWorld
+main
+  i : string
+
+begin
+  i = "Hello world!";
+  Out << i << Line;
+  Out << "Hello world, AGAIN!" << Line
+
+end CD23 HelloWorld
+
+//two different presentations of hello world

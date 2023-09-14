@@ -1,0 +1,25 @@
+CD23 FunctionParameterFail
+  func fumblingParameters(x : integer) : integer
+    begin
+      x = x + 5;
+      x = interceptParameter(x);
+      return x;
+    end
+
+  func interceptParameter(k: integer): boolean
+    begin
+      k = k + (0-4);
+      return k;
+    end
+
+  theBall : integer;
+
+main
+  begin
+    theBall = 1;
+    theBall = fumblingParameters(theBall);
+    Out << theBall << Line;
+
+end CD23 FunctionParameterFail
+
+//returns wrong value

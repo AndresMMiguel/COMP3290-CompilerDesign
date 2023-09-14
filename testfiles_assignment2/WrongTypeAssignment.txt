@@ -1,0 +1,19 @@
+CD23 WrongTypeAssignment
+main
+  x : integer
+  y : integer
+  x : string
+
+begin
+  x = 22;
+  y = 12;
+  z = x - y;
+  if(x >= 10) 
+    Out << x << Line 
+  else 
+    Out << "less than 10" << Line 
+  end
+
+end CD23 WrongTypeAssignment
+
+//tries to assign the operation result of integer type to a string type
