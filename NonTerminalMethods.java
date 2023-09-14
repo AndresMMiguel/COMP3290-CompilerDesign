@@ -11,6 +11,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class NonTerminalMethods {
     private static Token currentToken;
     private static Token lookAheadToken;
     private static Stack<Token> tokenStack = new Stack<Token>();
-    private static HashMap<String, SymbolForTable> symbolTable = new HashMap<>();
+    private static HashMap<String, List<SymbolForTable>> symbolTable = new HashMap<>();
     private static SyntaxNode node;
 
 
@@ -76,7 +77,33 @@ public class NonTerminalMethods {
                 }
             }
         }
+
+        private static void createBaseSymbolTable(){
+            symbolTable.put("integer", new ArrayList<>());
+            symbolTable.put("real", new ArrayList<>());
+            symbolTable.put("boolean", new ArrayList<>());
+            symbolTable.put("integer", new ArrayList<>());
+        }
+
+        private static void createSymbolForTable(String tokenType){
+            SymbolForTable temp;
+            if(tokenType.equals("TINTG")){
+                temp = new SymbolForTable(currentToken.getLexeme(), currentToken.getLineNumber(), currentToken.getColumnNumber(), "integer", currentToken.getLexeme());
+            }
+            else if(tokenType.equals("TREAL")){
+                temp = new SymbolForTable(currentToken.getLexeme(), currentToken.getLineNumber(), currentToken.getColumnNumber(), "real", currentToken.getLexeme());
+            }
+            else if(tokenType.equals("TFUNC")){
+                temp = new SymbolForTable(currentToken.getLexeme(), currentToken.getLineNumber(), currentToken.getColumnNumber(), "func", currentToken.getLexeme(), null);
+            }
+            else{
+                temp = new SymbolForTable(currentToken.getLexeme(), currentToken.getLineNumber(), currentToken.getColumnNumber(), "boolean", currentToken.getLexeme());
+            }
+            symbolTable.get(temp.getType()).add(temp);
+        }
+
         public void superMethod (){
+            createBaseSymbolTable();
             updateTokens();
             nprog();
         }
@@ -301,6 +328,7 @@ public class NonTerminalMethods {
                 tokenInfo[0] = currentToken.getLexeme();
                 tokenInfo[1] = currentToken.getTokenEnumString();
                 updateTokens();
+                createSymbolForTable(lookAheadToken.getTokenEnumString());
             }//Error
         }//Error
         return tokenInfo;
