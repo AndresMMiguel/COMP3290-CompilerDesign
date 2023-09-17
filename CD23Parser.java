@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 //Hashmap methods
 //  hashMap.put(key, object)
@@ -27,17 +28,66 @@ public class CD23Parser {
     private static String[] scannerArgs = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/CD23Example.txt"};
     private static ArrayList<Token> tokenList;
     private static NonTerminalMethods nonTerminalMethods = new NonTerminalMethods();
-    private static ArrayList<SyntaxNode> nodeList;
+    private static SyntaxNode root;
+    private static Stack<SyntaxNode> nodeStack = new Stack<SyntaxNode>();
     // private static Map<String, SymbolForTable> symbolTable = new HashMap<>();
 
+    private static void printNodes (SyntaxNode root){
+        nodeStack.push(root);
+        System.out.println(root.getNodeValue() + " " + root.getSymbolValue());
+        while(nodeStack.size() > 0){
+            if(nodeStack.lastElement().getLeft() != null){
+                nodeStack.push(nodeStack.lastElement().getLeft());
+                printElement(nodeStack);
+            }else if(nodeStack.lastElement().getMiddle() != null){
+                nodeStack.push(nodeStack.lastElement().getMiddle());
+                printElement(nodeStack);
+            }else if(nodeStack.lastElement().getRight() != null){
+                nodeStack.push(nodeStack.lastElement().getRight());
+                printElement(nodeStack);
+            }else if (nodeStack.size() > 1){
+                if (nodeStack.elementAt(nodeStack.size()-2).getLeft() != null){
+                    nodeStack.pop();
+                    nodeStack.lastElement().setLeft(null);
+                }else if (nodeStack.elementAt(nodeStack.size()-2).getMiddle() != null){
+                    nodeStack.pop();
+                    nodeStack.lastElement().setMiddle(null);
+                }else if (nodeStack.elementAt(nodeStack.size()-2).getRight() != null){
+                    nodeStack.pop();
+                    nodeStack.lastElement().setRight(null);
+                }
+            }else{
+                nodeStack.pop();
+            }
+        }
+    }
+
+    private static void printElement(Stack<SyntaxNode> nodeStack){
+        System.out.print(nodeStack.lastElement().getNodeValue());
+        if (nodeStack.lastElement().getSymbolValue() != null){
+            System.out.println(" " + nodeStack.lastElement().getSymbolValue());
+        }else{
+            System.out.println();
+        }
+    }
+
+    private static Boolean tree = true;
     public static void main (String[] args) throws IOException{
         if (args.length > 0)
             scannerArgs = args;
         tokenList = scanner.main(scannerArgs);
-        nonTerminalMethods.transferTokensToStack(tokenList);
-        nodeList = nonTerminalMethods.superMethod();
-        for(SyntaxNode node:nodeList){
-            System.out.println(node.getNodeValue());
+        if(tree){
+            nonTerminalMethods.transferTokensToStack(tokenList);
+            root = nonTerminalMethods.superMethod();
+            printNodes(root);
+        }else{
+            GrammarMethods object = new GrammarMethods();
+            object.transferTokensToStack(tokenList);
+            ArrayList<SyntaxNode> nodeList = object.superMethod();
+            for(SyntaxNode node:nodeList){
+                System.out.println(node.getNodeValue());
+            }
         }
+        
     }
 }
