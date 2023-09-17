@@ -85,9 +85,9 @@ public class SyntaxNode {
         temp.getRight().getNodeValue().equals("NXOR"))){
             temp = getBoolLastNode(temp.getRight());
         }else if ((temp.getLeft()!=null) &&
-        (temp.getRight().getNodeValue().equals("NAND") || 
-        temp.getRight().getNodeValue().equals("NOR") || 
-        temp.getRight().getNodeValue().equals("NXOR"))){
+        (temp.getLeft().getNodeValue().equals("NAND") || 
+        temp.getLeft().getNodeValue().equals("NOR") || 
+        temp.getLeft().getNodeValue().equals("NXOR"))){
             temp = getBoolLastNode(temp.getLeft());
         }
         return temp;
@@ -97,11 +97,11 @@ public class SyntaxNode {
         if ((temp.getRight()!=null) && 
         (temp.getRight().getNodeValue().equals("NADD") ||
         temp.getRight().getNodeValue().equals("NSUB"))){
-            temp = getBoolLastNode(temp.getRight());
+            temp = getExprLastNode(temp.getRight());
         }else if ((temp.getLeft()!=null) &&
-        (temp.getRight().getNodeValue().equals("NADD") || 
-        temp.getRight().getNodeValue().equals("NSUB"))){
-            temp = getBoolLastNode(temp.getLeft());
+        (temp.getLeft().getNodeValue().equals("NADD") || 
+        temp.getLeft().getNodeValue().equals("NSUB"))){
+            temp = getExprLastNode(temp.getLeft());
         }
         return temp;
     }
@@ -113,10 +113,10 @@ public class SyntaxNode {
         temp.getRight().getNodeValue().equals("NMOD"))){
             temp = getBoolLastNode(temp.getRight());
         }else if ((temp.getLeft()!=null) &&
-        (temp.getRight().getNodeValue().equals("NMUL") || 
-        temp.getRight().getNodeValue().equals("NDIV") || 
-        temp.getRight().getNodeValue().equals("NMOD"))){
-            temp = getBoolLastNode(temp.getLeft());
+        (temp.getLeft().getNodeValue().equals("NMUL") || 
+        temp.getLeft().getNodeValue().equals("NDIV") || 
+        temp.getLeft().getNodeValue().equals("NMOD"))){
+            temp = getTermLastNode(temp.getLeft());
         }
         return temp;
     }

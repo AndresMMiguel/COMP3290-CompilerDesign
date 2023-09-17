@@ -71,23 +71,12 @@ public class CD23Parser {
         }
     }
 
-    private static Boolean tree = true;
     public static void main (String[] args) throws IOException{
         if (args.length > 0)
             scannerArgs = args;
         tokenList = scanner.main(scannerArgs);
-        if(tree){
-            nonTerminalMethods.transferTokensToStack(tokenList);
-            root = nonTerminalMethods.superMethod();
-            printNodes(root);
-        }else{
-            GrammarMethods object = new GrammarMethods();
-            object.transferTokensToStack(tokenList);
-            ArrayList<SyntaxNode> nodeList = object.superMethod();
-            for(SyntaxNode node:nodeList){
-                System.out.println(node.getNodeValue());
-            }
-        }
-        
+        nonTerminalMethods.transferTokensToStack(tokenList);
+        root = nonTerminalMethods.superMethod();
+        printNodes(root);        
     }
 }
