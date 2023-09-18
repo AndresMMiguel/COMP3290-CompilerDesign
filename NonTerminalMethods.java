@@ -33,6 +33,9 @@ public class NonTerminalMethods {
     private static HashMap<String, ArrayList<SymbolForTable>> symbolTable = new HashMap<>();
     private static SyntaxNode root;
     private static SyntaxNode node;
+    private static String tokenLexeme;
+    private static Integer lineNUmber;
+    private static Integer colNumber;
 
 
 
@@ -115,19 +118,25 @@ public class NonTerminalMethods {
             symbolTable.put("function", new ArrayList<SymbolForTable>());
         }
 
+        private static void setSymbolInfo(){
+            tokenLexeme = currentToken.getLexeme();
+            lineNUmber = currentToken.getLineNumber();
+            colNumber = currentToken.getColumnNumber();
+        }
+
         private static void createSymbolForTable(String tokenType){
             SymbolForTable temp;
             if(tokenType.equals("TINTG")){
-                temp = new SymbolForTable(currentToken.getLexeme(), currentToken.getLineNumber(), currentToken.getColumnNumber(), "integer", currentToken.getLexeme());
+                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "integer", tokenLexeme);
             }
             else if(tokenType.equals("TREAL")){
-                temp = new SymbolForTable(currentToken.getLexeme(), currentToken.getLineNumber(), currentToken.getColumnNumber(), "real", currentToken.getLexeme());
+                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "real", tokenLexeme);
             }
             else if(tokenType.equals("TFUNC")){
-                temp = new SymbolForTable(currentToken.getLexeme(), currentToken.getLineNumber(), currentToken.getColumnNumber(), "func", currentToken.getLexeme(), null);
+                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "func", tokenLexeme, null);
             }
             else{
-                temp = new SymbolForTable(currentToken.getLexeme(), currentToken.getLineNumber(), currentToken.getColumnNumber(), "boolean", currentToken.getLexeme());
+                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "boolean", tokenLexeme);
             }
             symbolTable.get(temp.getType()).add(temp);
         }
