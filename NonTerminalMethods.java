@@ -133,6 +133,7 @@ public class NonTerminalMethods {
         }
     
         public SyntaxNode superMethod (){
+            createBaseSymbolTable();
             nprog();
             return root;
         }
