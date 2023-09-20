@@ -13,9 +13,6 @@
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
-
-import javax.swing.plaf.synth.SynthPasswordFieldUI;
-
 import java.util.ArrayList;
 
 //Hashmap methods
@@ -31,8 +28,6 @@ public class NonTerminalMethods {
     private static Stack<Token> tokenStack = new Stack<Token>();
     private static HashMap<String, SymbolForTable> symbolTable = new HashMap<>();
     private static SyntaxNode root;
-    private static SyntaxNode node;
-
 
 
     public void transferTokensToStack(ArrayList<Token> tokenList){
@@ -62,18 +57,6 @@ public class NonTerminalMethods {
         
         }
 
-        //updates next tokens based on the array
-        private static void updateTokens(String[]array){
-            for(int i = 0; i < array.length; i++){
-                if (lookAheadToken.getTokenEnumString().equals(array[i])){
-                    updateTokens();
-                }else{
-                    System.out.println("Error: expected token " + array[i]);
-                    break;
-                }
-            }
-        }
-
         // creates node child in the vacant position
         private static void createChild (SyntaxNode parent, SyntaxNode child){
             if (parent.getLeft() == null){
@@ -97,16 +80,12 @@ public class NonTerminalMethods {
     //NPROG <program> ::= CD23 <id> <globals> <funcs> <mainbody>
     private void nprog(){
         root = new SyntaxNode("NUNDF", null, null);
-        if(lookAheadToken.getTokenEnumString().equals("TCD23")){
             match("TCD23");
             match("TIDEN");
             root = new SyntaxNode("NPROG", currentToken.getLexeme(), currentToken.getTokenEnumString());
             root = globals(root);
-            // root = funcs(root);
-            // root = mainbody(root);
-        }else{
-            System.out.println("Error: Expected an identifier in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
-        }
+            root = funcs(root);
+            root = mainbody(root);
     }
     
     //NGLOB <globals> ::= <consts> <types> <arrays>
@@ -117,8 +96,8 @@ public class NonTerminalMethods {
                 SyntaxNode globalNode = new SyntaxNode("NGLOB", lookAheadToken.getLexeme(), lookAheadToken.getTokenEnumString());
                 globalNode = consts(globalNode);
                 globalNode = types(globalNode);
+                globalNode = arrays(globalNode);
                 createChild(parent, globalNode);
-                // node = arrays(node);
         }
         return parent;
     }
@@ -131,22 +110,6 @@ public class NonTerminalMethods {
         }
             return parent;
     }
-
-    // private void initlist(){
-    //     init();
-    //     if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
-    //         match("TCOMA");
-    //         SyntaxNode temp = new SyntaxNode("NILIST", currentToken.getLexeme(), currentToken.getTokenEnumString());
-    //         createChild(temp, node);
-    //         node = root.getListLastNode(root, "NGLOB");
-    //         createChild(node.getListLastNode(node, "NILIST"), temp);
-    //         initlist();
-    //     }else{
-    //         SyntaxNode temp = node;
-    //         node = root.getListLastNode(root, "NGLOB");
-    //         createChild(node.getListLastNode(node, "NILIST"), temp);
-    //     }
-    // }
 
     private SyntaxNode initlist(SyntaxNode parent){
         SyntaxNode initNode = init();
@@ -163,13 +126,6 @@ public class NonTerminalMethods {
     }
 
     //NINIT <init> ::= <id> is <expr>
-    // private void init(){
-    //     match("TIDEN");
-    //     node = new SyntaxNode("NINIT", currentToken.getLexeme(), currentToken.getTokenEnumString());
-    //     match("TTTIS");
-    //     const_lit();
-    // }
-
     private SyntaxNode init(){
         match("TIDEN");
         SyntaxNode initNode = new SyntaxNode("NINIT", currentToken.getLexeme(), currentToken.getTokenEnumString());
@@ -208,35 +164,6 @@ public class NonTerminalMethods {
         return parent;
     }
 
-    // private void const_lit(){
-    //     SyntaxNode temp;
-    //     switch (lookAheadToken.getTokenEnumString()){
-    //         case "TILIT":
-    //             match("TILIT");
-    //             temp = new SyntaxNode("NILIT", currentToken.getLexeme(), currentToken.getTokenEnumString());
-    //             createChild(node, temp);
-    //         break;
-
-    //         case "TFLIT":
-    //             match("TFLIT");
-    //             temp = new SyntaxNode("NFLIT", currentToken.getLexeme(), currentToken.getTokenEnumString());
-    //             createChild(node, temp);
-    //         break;
-
-    //         case "TTRUE":
-    //             match("TTRUE");
-    //             temp = new SyntaxNode("NTRUE", currentToken.getLexeme(), currentToken.getTokenEnumString());
-    //             createChild(node, temp);
-    //         break;
-
-    //         case "TFALS":
-    //             match("TFALS");
-    //             temp = new SyntaxNode("NFALS", currentToken.getLexeme(), currentToken.getTokenEnumString());
-    //             createChild(node, temp);
-    //         break;
-    //     }
-    // }
-
     //Special <types> ::= types <typelist> | ε
     private SyntaxNode types(SyntaxNode parent){
         if (lookAheadToken.getTokenEnumString().equals("TTYPS")){
@@ -247,46 +174,58 @@ public class NonTerminalMethods {
     }
 
     //Special <arrays> ::= arrays <arrdecls> | ε
-    private void arrays(SyntaxNode parent){
+    private SyntaxNode arrays(SyntaxNode parent){
         if (lookAheadToken.getTokenEnumString().equals("TARRS")){
-            updateTokens();
-            arrdecls(parent);
+            match("TARRS");
+            parent = arrdecls(parent);
         }
+        return parent;
     }
 
     //NFUNCS <funcs> ::= <func> <funcs>
     //Special <funcs> ::= ε
-    private void funcs(SyntaxNode parent){
-        SyntaxNode temp = func();
+    private SyntaxNode funcs(SyntaxNode parent){
+        SyntaxNode funcNode = func();
         if (lookAheadToken.getTokenEnumString().equals("TFUNC")){
-            node = new SyntaxNode("NFUNCS", null, null);
-            createChild(parent, node);
-            createChild(node, temp);
-            funcs(node);
+            SyntaxNode temp = new SyntaxNode("NFUNCS", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            createChild(temp, funcNode);
+            createChild(parent.getListLastNode(parent, "NFUNCS"), temp);
+            funcs(parent);
+        }else{
+            createChild(parent.getListLastNode(parent, "NFUNCS"), funcNode);
         }
-        createChild(parent, temp);
+        return parent;
     }
 
     //NMAIN <mainbody> ::= main <slist> begin <stats> end CD23 <id>
-    private void mainbody(SyntaxNode parent){
-         if (lookAheadToken.getTokenEnumString().equals("TMAIN")){     // if there is mainbody
-            node = new SyntaxNode("NMAIN", null, null);
-            if(parent.getLeft() == null){                
-                parent.setLeft(node);
-            }else if (parent.getRight() == null){
-                parent.setRight(node);
-            }else if (parent.getRight().getNodeValue() != "NFUNC"){
-                System.out.println("Error: Expected main after functions, in line: " + lookAheadToken.getLineNumber() + " column: " + lookAheadToken.getColumnNumber());
-            }else{
-                parent.setMiddle(parent.getRight());
-                parent.setRight(node);
-            }
-            
-         }
+    private SyntaxNode mainbody(SyntaxNode parent){
+         match("TMAIN");
+         SyntaxNode mainNode = new SyntaxNode("NMAIN", currentToken.getLexeme(), currentToken.getTokenEnumString());
+         mainNode = slist(mainNode);
+         match("TBEGN");
+        mainNode = stats(mainNode);
+        match("TTEND");
+        match("TCD23");
+        match("TIDEN");
+        createChild(parent, mainNode);
+        return parent;
     }
 
     //NSDLST <slist> ::= <sdecl> , <slist>
     //Special <slist> ::= <sdecl>
+    private SyntaxNode slist(SyntaxNode parent){
+        SyntaxNode sdeclNode = sdecl();
+        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            match("TCOMA");
+            SyntaxNode sdlistNode = new SyntaxNode("NSDLST", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            createChild(sdlistNode, sdeclNode);
+            createChild(parent.getListLastNode(parent, "NSDLST"), sdlistNode);
+            slist(parent);
+        }else{
+            createChild(parent.getListLastNode(parent, "NSDLST"), sdeclNode);
+        }
+        return parent;
+    }
 
     //NTYPEL <typelist> ::= <type> <typelist>
     //Special <typelist> ::= <type>
@@ -326,51 +265,10 @@ public class NonTerminalMethods {
         return typeNode;
     }
 
-    // private SyntaxNode type(){
-    //     if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-    //         updateTokens();
-    //         if (lookAheadToken.getTokenEnumString().equals("TTTIS")){
-    //             String type = currentToken.getLexeme();
-    //             String lexeme = currentToken.getTokenEnumString();
-    //             updateTokens();
-    //             if (lookAheadToken.getTokenEnumString().equals("TARAY")){   //NATYPE <type> ::= <typeid> is array [ <expr> ] of <structid> end
-    //                 updateTokens();
-    //                 node = new SyntaxNode("NATYPE", lexeme, type);
-    //                 if (lookAheadToken.getTokenEnumString().equals("TLBRK")){
-    //                     updateTokens();
-    //                     expr(node);
-    //                     if (lookAheadToken.getTokenEnumString().equals("TRBRK")){
-    //                         updateTokens();
-    //                         if (lookAheadToken.getTokenEnumString().equals("TTTOF")){
-    //                             updateTokens();
-    //                             if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-    //                                 updateTokens();
-    //                                 // Symbol table: structid of the array
-    //                                 if (lookAheadToken.getTokenEnumString().equals("TTEND")){
-    //                                     updateTokens();
-    //                                 }// Error
-    //                             }// Error
-    //                         }// Error
-    //                     }// Error
-    //                 }// Error
-    //                 return node;
-    //             }else{                      //NRTYPE <type> ::= <structid> is <fields> end
-    //                 node = new SyntaxNode("NRTYPE", lexeme, type);
-    //                 fields(node);
-    //                 if (lookAheadToken.getTokenEnumString().equals("TTEND")){
-    //                     updateTokens();
-    //                     return node;
-    //                 }
-    //             }        
-    //         }
-    //     }
-    //     node = new SyntaxNode("NUNDF", null, null);
-    //     return node;
-    // }
-
     //NFLIST <fields> ::= <sdecl> , <fields>
     //Special <fields> ::= <sdecl>
     private SyntaxNode fields(SyntaxNode parent){
+        declPrefix();
         SyntaxNode sdeclNode = sdecl();
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
             match("TCOMA");
@@ -384,194 +282,164 @@ public class NonTerminalMethods {
         return parent;
     }
 
-    // private String[] declPrefix (){
-    //     String[]tokenInfo = new String[2];
-    //     if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-    //         updateTokens();
-    //         if(lookAheadToken.getTokenEnumString().equals("TCOLN")){
-    //             tokenInfo[0] = currentToken.getLexeme();
-    //             tokenInfo[1] = currentToken.getTokenEnumString();
-    //             updateTokens();
-    //         }//Error
-    //     }//Error
-    //     return tokenInfo;
-    // }
+    private void declPrefix (){
+        match("TIDEN");
+        match("TCOLN");
+        // STORE THIS IDENTIFIERS IN THE SYMBOL TABLE
+    }
 
     //NSDECL <sdecl> ::= <id> : <stype>
     private SyntaxNode sdecl(){
-        match("TIDEN");
-        match("TCOLN");
         stype();
         SyntaxNode temp = new SyntaxNode("NSDECL", currentToken.getLexeme(), currentToken.getTokenEnumString());
         return temp;
     }
 
-    // private SyntaxNode sdecl(String[]identInfo){
-    //     node = new SyntaxNode("NUNDF", null, null);
-    //     if (lookAheadToken.getTokenEnumString().equals("TINT") ||
-    //     lookAheadToken.getTokenEnumString().equals("TREAL") ||
-    //     lookAheadToken.getTokenEnumString().equals("TBOOL")){
-    //         node = new SyntaxNode("NSDECL", identInfo[0], identInfo[1]);
-    //         stype();
-    //     }
-    //     return node;
-    // }
-
     //NALIST <arrdecls> ::= <arrdecl> , <arrdecls>
     //Special <arrdecls> ::= <arrdecl>
-    private void arrdecls(SyntaxNode parent){
-        SyntaxNode node = arrdecl(declPrefix());
-        optArrdecl(parent, node);
+    private SyntaxNode arrdecls(SyntaxNode parent){
+        declPrefix();
+        SyntaxNode declNode = arrdecl();
+        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            match("TCOMA");
+            SyntaxNode listNode = new SyntaxNode("NALIST", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            createChild(listNode, declNode);
+            createChild(parent.getListLastNode(parent, "NALIST"), listNode);
+            arrdecls(parent);
+        }else{
+            createChild(parent.getListLastNode(parent, "NALIST"), declNode);
+        }
+        return parent;
     }
 
     //NARRD <arrdecl> ::= <id> : <typeid>
-    private SyntaxNode arrdecl(String[]identInfo){
-        node = new SyntaxNode("NUNDF", null, null);
-        if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-            updateTokens();
-            node = new SyntaxNode("NARRD", identInfo[0], identInfo[1]);
-        }// Error
-        return node;
-    }
-
-    private void optArrdecl (SyntaxNode parent, SyntaxNode child){
-        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
-            updateTokens();
-            node = new SyntaxNode("NALIST", null, null);
-            createChild(parent, node);
-            createChild(node, child);
-            arrdecls(node);
-        }else{
-            createChild(parent, child);
-        }
+    private SyntaxNode arrdecl(){
+        match("TIDEN");
+        // STORE THIS ARRAY TYPE IN THE SYMBOL TABLE
+        SyntaxNode temp = new SyntaxNode("NARRD", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        return temp;
     }
 
     //NFUND <func> ::= func <id> ( <plist> ) : <rtype> <funcbody>
     private SyntaxNode func(){
-        node = new SyntaxNode("NUNDF", null, null);
-        if (lookAheadToken.getTokenEnumString().equals("TFUNC")){
-            updateTokens();
-            if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-                updateTokens();
-                node = new SyntaxNode("NFUND", currentToken.getLexeme(), currentToken.getTokenEnumString());
-                if (lookAheadToken.getTokenEnumString().equals("TLPAR")){
-                    updateTokens();
-                    plist(node);
-                    if (lookAheadToken.getTokenEnumString().equals("TRPAR")){
-                        updateTokens();
-                        if (lookAheadToken.getTokenEnumString().equals("TCOLN")){
-                            updateTokens();
-                            rtype();
-                            funcbody(node);
-                        }
-                    }
-                }
-            }// Error
-        }// Error
-        return node;
+        match("TFUNC");
+        match("TIDEN");
+        // STORE THIS FUNCTION IDENTIFIER IN THE SYMBOL TABLE
+        SyntaxNode funcNode = new SyntaxNode("NFUND", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        match("TLPAR");
+        funcNode = plist(funcNode);
+        match("TRPAR");
+        match("TCOLN");
+        rtype();
+        funcNode = funcbody(funcNode);
+        return funcNode;
     }
 
     //Special <rtype> ::= <stype> | void
     private void rtype(){
+        // STORE THIS RETURN TYPE IN THE SYMBOL TABLE
         if (lookAheadToken.getTokenEnumString().equals("TVOID")){
-            updateTokens();
+            match("TVOID");
         }else{
             stype();
         }
     }
 
     //Special <plist> ::= <params> | ε
-    private void plist(SyntaxNode parent){
+    private SyntaxNode plist(SyntaxNode parent){
         if (lookAheadToken.getTokenEnumString().equals("TIDEN") ||
         lookAheadToken.getTokenEnumString().equals("TCNST")){
-            params(parent);
+            parent = params(parent);
         }
+        return parent;
     }
 
     //NPLIST <params> ::= <param> , <params>
     //Special <params> ::= <param>
-    private void params (SyntaxNode parent){
-        node = param();
-        optParams(parent, node);
+    private SyntaxNode params(SyntaxNode parent){
+        SyntaxNode paramNode = param();
+        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            match("TCOMA");
+            SyntaxNode temp = new SyntaxNode("NPLIST", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            createChild(temp, paramNode);
+            createChild(parent.getListLastNode(parent, "NPLIST"), temp);
+            params(parent);
+        }else{
+            createChild(parent.getListLastNode(parent, "NPLIST"), paramNode);
+        }
+        return parent;
     }
 
-    private SyntaxNode param (){
+    //NSIMP <param> ::= <sdecl>
+    //NARRP <param> ::= <arrdecl>
+    //NARRC <param> ::= const <arrdecl>
+    private SyntaxNode param(){
+        SyntaxNode paramNode;
         if (lookAheadToken.getTokenEnumString().equals("TCNST")){       //NARRC <param> ::= const <arrdecl>
-            updateTokens();
-            node = new SyntaxNode("NARRC", null, null);
-            SyntaxNode temp = arrdecl(declPrefix());
-            createChild(node, temp);
+            match("TCNST");
+            paramNode = new SyntaxNode("NARRC", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            declPrefix();
+            SyntaxNode temp = arrdecl();
+            createChild(paramNode, temp);
         }else{
+            declPrefix();
             if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-                node = new SyntaxNode("NARRP", null, null);
-                SyntaxNode temp = arrdecl(declPrefix());
-                createChild(node, temp);
+                match("TIDEN");
+                paramNode = new SyntaxNode("NARRP", currentToken.getLexeme(), currentToken.getTokenEnumString());
+                declPrefix();
+                SyntaxNode temp = arrdecl();
+                createChild(paramNode, temp);
             }else{
-                node = new SyntaxNode("NSIMP", null, null);
-                SyntaxNode temp = sdecl(declPrefix());
-                createChild(node, temp);
+                paramNode = new SyntaxNode("NSIMP", currentToken.getLexeme(), currentToken.getTokenEnumString());
+                SyntaxNode temp = sdecl();
+                createChild(paramNode, temp);
             }
         }
-        return node;
+        return paramNode;
     }
-
-    private void optParams (SyntaxNode parent, SyntaxNode child){
-        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
-            updateTokens();
-            node = new SyntaxNode("NPLIST", null, null);
-            createChild(parent, node);
-            createChild(node, child);
-            params(node);
-        }
-        createChild(parent, child);
-    }
-
 
     //Special <funcbody> ::= <locals> begin <stats> end
-    private void funcbody (SyntaxNode parent){
-        locals(parent);
-        if (lookAheadToken.getTokenEnumString().equals("TBEGN"));{
-            updateTokens();
-            stats(parent);
-            if (lookAheadToken.getTokenEnumString().equals("TTEND")){
-                updateTokens();
-            }// Error
-        }// Error
+    private SyntaxNode funcbody (SyntaxNode parent){
+        parent = locals(parent);
+        match("TBEGN");
+        parent = stats(parent); 
+        match("TTEND");
+        return parent;
     }
 
     //Special <locals> ::= <dlist> | ε
-    private void locals(SyntaxNode parent){
-        if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-            dlist(parent);
+    private SyntaxNode locals(SyntaxNode parent){
+        if (!lookAheadToken.getTokenEnumString().equals("TBEGN")){
+            parent = dlist(parent);
         }
+        return parent;
     }
 
     //NDLIST <dlist> ::= <decl> , <dlist>
     //Special <dlist> ::= <decl>
-    private void dlist(SyntaxNode parent){
-        node = decl();
-        optDlist(parent, node);
+    private SyntaxNode dlist(SyntaxNode parent){
+        SyntaxNode declNode = decl();
+        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            SyntaxNode dlistNode = new SyntaxNode("NDLIST", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            createChild(dlistNode, declNode);
+            createChild(parent.getListLastNode(parent, "NDLIST"), dlistNode);
+            dlist(parent);
+        }else{
+            createChild(parent.getListLastNode(parent, "NDLIST"), declNode);
+        }
+        return parent;
     }
 
     //Special <decl> ::= <sdecl> | <arrdecl>
     private SyntaxNode decl(){
-        String[]infoIdent = declPrefix();
+        declPrefix();
+        SyntaxNode temp = new SyntaxNode("NUNDF", null, null);
         if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-            node = arrdecl(infoIdent);
+            temp = arrdecl();
         }else{
-            node = sdecl(infoIdent);
+            temp = sdecl();
         }
-        return node;
-    }
-
-    private void optDlist(SyntaxNode parent, SyntaxNode child){
-        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
-            node = new SyntaxNode("NDLIST", null, null);
-            createChild(parent, node);
-            createChild(node, child);
-            dlist(node);
-        }
-        createChild(parent, child);
+        return temp;
     }
 
     //Special <stype> ::= integer | real | boolean
@@ -581,354 +449,286 @@ public class NonTerminalMethods {
         lookAheadToken.getTokenEnumString().equals("TTRUE") ||
         lookAheadToken.getTokenEnumString().equals("TFALS")){
             updateTokens();
-            // Symbol table leaf value
+            // STORE THIS IDENTIFIER DECLARATION TYPE IN THE SYMBOL TABLE (and link it to its identifier)
         }else{
-            // Error
+            System.out.println("Error: Expected an integer, real or boolean in line: " + currentToken.getLineNumber());
         }
     }
 
     //NSTATS <stats> ::= <stat> ; <stats> | <strstat> <stats>
     //Special <stats> ::= <stat>; | <strstat>
-    private void stats(SyntaxNode parent){
+    private SyntaxNode stats(SyntaxNode parent){
+        SyntaxNode temp = new SyntaxNode("NUNDF", null, null);
+        // If strstat
         if (lookAheadToken.getTokenEnumString().equals("TTFOR") ||
         lookAheadToken.getTokenEnumString().equals("TIFTH")){
-            node = strstat();
-            optStat(parent, node);
+            temp = strstat(temp);
+        // If stat
         }else{
-            node = stat();
-            optStat(parent, node);
+            temp = stat(temp);
+            match("TSEMI");
         }
-    }
-
-    private void optStat(SyntaxNode parent, SyntaxNode child){
         if (!lookAheadToken.getTokenEnumString().equals("TTEND")){
-            node = new SyntaxNode("NSTATS", null, null);
-            createChild(parent, node);
-            createChild(node, child);
-            stats(node);
+                SyntaxNode statsNode = new SyntaxNode("NSTATS", currentToken.getLexeme(), currentToken.getTokenEnumString());
+                statsNode.copyChildren(temp, statsNode);
+                createChild(parent.getListLastNode(parent, "NSTATS"), statsNode);
+                stats(parent);
+        }else{
+            createChild(parent.getListLastNode(parent, "NSTATS"), temp.getLeft());
         }
-        createChild(parent, child);
+        return parent;
     }
 
     //Special <strstat> ::= <forstat> | <ifstat>
-    private SyntaxNode strstat(){
-        node = new  SyntaxNode("NUNDF", null, null);
+    private SyntaxNode strstat(SyntaxNode parent){
         if (lookAheadToken.getTokenEnumString().equals("TTFOR")){
-            node = forstat();
+            parent = forstat(parent);
         }else{
-            node = ifstat();
+            parent = ifstat(parent);
         }
-        return node;
+        return parent;
     }
 
     //Special <stat> ::= <reptstat> | <asgnstat> | <iostat>
     //Special <stat> ::= <callstat> | <returnstat>
-    private SyntaxNode stat(){
-        node = new  SyntaxNode("NUNDF", null, null);
+    private SyntaxNode stat(SyntaxNode parent){
         switch (lookAheadToken.getTokenEnumString()){
             case "TREPT":   //Special <stat> ::= <reptstat>
-                node = repstat();
+                parent = repstat(parent);
             break;
 
             case "TIDEN":
-                updateTokens();
+            match("TIDEN");
                 if (lookAheadToken.getTokenEnumString().equals("TLPAR")){   //Special <stat> ::= <callstat>
-                    node = callstat();
+                    parent = callstat(parent);
                 }else{      //Special <stat> ::= <asgnstat>
-                    node = asgnstat();
+                    SyntaxNode asgnNode = asgnstat();
+                    createChild(parent, asgnNode);
                 }
             break;
 
             case "TINPT":   //Special <stat> ::= <iostat>
-                node = iostat();
+                parent = iostat(parent);
             break;
 
             case "TOUTP":   //Special <stat> ::= <iostat>
-                node = iostat();
+                parent = iostat(parent);
             break;
 
             case "TRETN":   //Special <stat> ::= <returnstat>
-                node = returnstat();
+                parent = returnstat(parent);
             break;
 
             default:
             break;
         }
-        return node;
+        return parent;
     }
 
     //NFORL <forstat> ::= for ( <asgnlist> ; <bool> ) <stats> end
-    private SyntaxNode forstat(){
-        node = new SyntaxNode("NUNDF", null, null);
-        if (lookAheadToken.getTokenEnumString().equals("TTFOR")){
-            updateTokens();
-            node = new SyntaxNode("NFORL", null, null);
-            if (lookAheadToken.getTokenEnumString().equals("TLPAR")){
-                updateTokens();
-                asgnlist(node);
-                if (lookAheadToken.getTokenEnumString().equals("TSEMI")){
-                    updateTokens();
-                    bool(node);
-                    if (lookAheadToken.getTokenEnumString().equals("TRPAR")){
-                        updateTokens();
-                        stats(node);
-                        if (lookAheadToken.getTokenEnumString().equals("TTEND")){
-                            updateTokens();
-                        }
-                    }
-                }// Error
-            }// Error
-        }// Error
-        return node;
+    private SyntaxNode forstat(SyntaxNode parent){
+        match("TTFOR");
+        SyntaxNode forNode = new SyntaxNode("NFORL", null, null);
+        match("TLPAR");
+        forNode = asgnlist(forNode);
+        match("TSEMI");
+        createChild(forNode, bool());
+        match("TRPAR");
+        forNode = stat(forNode);
+        match("TTEND");
+        createChild(parent, forNode);
+        return parent;
     }
 
     //NREPT <repstat> ::= repeat ( <asgnlist> ) <stats> until <bool>
-    private SyntaxNode repstat(){
-        node = new SyntaxNode("NUNDF", null, null);
-        if (lookAheadToken.getTokenEnumString().equals("TREPT")){
-            updateTokens();
-            node = new SyntaxNode("NREPT", null, null);
-            if (lookAheadToken.getTokenEnumString().equals("TLPAR")){
-                updateTokens();
-                asgnlist(node);
-                if (lookAheadToken.getTokenEnumString().equals("TRPAR")){
-                    updateTokens();
-                    stats(node);
-                    if (lookAheadToken.getTokenEnumString().equals("TUNTL")){
-                        updateTokens();
-                        bool(node);
-                    }// Error
-                }// Error
-            }// Error
-        }
-        return node;
+    private SyntaxNode repstat(SyntaxNode parent){
+        match("TREPT");
+        SyntaxNode reptNode = new SyntaxNode("NREPT", null, null);
+        match("TLPAR");
+        reptNode = asgnlist(reptNode);
+        match("TRPAR");
+        reptNode = stat(reptNode);
+        match("TUNTL");
+        createChild(reptNode, bool());
+        createChild(parent, reptNode);
+        return parent;
     }
 
     //Special <asgnlist> ::= <alist> | ε
-    private void asgnlist(SyntaxNode parent){
+    private SyntaxNode asgnlist(SyntaxNode parent){
         if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-            alist(parent);
+            parent = alist(parent);
         }
+        return parent;
     }
 
     //NASGNS <alist> ::= <asgnstat> , <alist>
     //Special <alist> ::= <asgnstat>
-    private void alist(SyntaxNode parent){
-        SyntaxNode temp = asgnstat();
+    private SyntaxNode alist(SyntaxNode parent){
+        match("TIDEN");
+        SyntaxNode asgnNode = asgnstat();
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
-            updateTokens();
-            node = new SyntaxNode("NASGNS", null, null);
-            createChild(parent, node);
-            createChild(node, temp);
-            alist(node);
+            match("TCOMA");
+            SyntaxNode alistNode = new SyntaxNode("NASGNS", null, null);
+            createChild(alistNode, asgnNode);
+            createChild(parent.getListLastNode(parent, "NASGNS"), alistNode);
+            alist(parent);
+        }else{
+            createChild(parent.getListLastNode(parent, "NASGNS"), asgnNode);
         }
-        createChild(parent, temp);
+        return parent;
     }
 
     //NIFTH <ifstat> ::= if ( <bool> ) <stats> end
     //NIFTE <ifstat> ::= if ( <bool> ) <stats> else <stats> end
-    private SyntaxNode ifstat(){
-        node = new SyntaxNode("NUNDF", null, null);
-        if (lookAheadToken.getTokenEnumString().equals("TIFTH")){
-            updateTokens();
-            node  = new SyntaxNode("NIFTH", null, null);
-            if (lookAheadToken.getTokenEnumString().equals("TLPAR")){
-                updateTokens();
-                bool(node);
-                if (lookAheadToken.getTokenEnumString().equals("TRPAR")){
-                    updateTokens();
-                    stats(node);
-                    optElse(node);
-                    if (lookAheadToken.getTokenEnumString().equals("TTEND")){
-                        updateTokens();
-                    }// Error
-                }// Error
-            }// Error
+    private SyntaxNode ifstat(SyntaxNode parent){
+        match("TIFTH");
+        SyntaxNode ifNode = new SyntaxNode("NIFTH", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        match("TLPAR");
+        createChild(ifNode, bool());
+        match("TRPAR");
+        ifNode = stats(ifNode);
+        if(lookAheadToken.getTokenEnumString().equals("TELSE")){
+            match("TELSE");
+            SyntaxNode elseNode = new SyntaxNode("NIFTE", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            elseNode.copyChildren(ifNode, elseNode);
+            elseNode = stats(elseNode);
+            createChild(parent, elseNode);
+        }else{
+            createChild(parent, ifNode);
         }
-        return node;
-    }
-
-    private void optElse (SyntaxNode parent){
-        if (lookAheadToken.getTokenEnumString().equals("TELSE")){
-            updateTokens();
-            node = new SyntaxNode("NIFTE", null, null);
-            stats(node);
-        }
+        match("TELSE");
+        return parent;
     }
 
     //Special <asgnstat> ::= <var> <asgnop> <bool>
     private SyntaxNode asgnstat(){
-        node = new SyntaxNode("NUNDF", null, null);
-        if (currentToken.getTokenEnumString().equals("TIDEN")){
-            SyntaxNode temp = var();
-            node = asgnop(temp);
-            bool(node);
-        }
-        return node;
+        SyntaxNode varNode = var();
+        SyntaxNode asgnNode = asgnop();
+        createChild(asgnNode, varNode);
+        createChild(asgnNode, bool());
+        return asgnNode;
     }
 
     //NASGN <asgnop> ::= =
     //NPLEQ <asgnop> ::= +=
     //NMNEQ <asgnop> ::= -=
-    //NSTEA <asgnop> ::= *=
+    //NSTEQ <asgnop> ::= *=
     //NDVEQ <asgnop> ::= /=
-    private SyntaxNode asgnop(SyntaxNode child){
-        node = new SyntaxNode("NUNDF", null, null);
+    private SyntaxNode asgnop(){
+        SyntaxNode temp = new SyntaxNode("NUNDF", null, null);
         switch (lookAheadToken.getTokenEnumString()){
             case "TEQUL":
-                updateTokens();
-                node = new SyntaxNode("NASGN", null, null);
-                createChild(node, child);
+                match("TEQUL");
+                temp = new SyntaxNode("NASGN", currentToken.getLexeme(), currentToken.getTokenEnumString());
             break;
 
             case "TPEQL":
-                updateTokens();
-                node = new SyntaxNode("NPLEQ", null, null);
-                createChild(node, child);
+                match("TPEQL");
+                temp = new SyntaxNode("NPLEQ", currentToken.getLexeme(), currentToken.getTokenEnumString());
             break;
 
             case "TMNEQ":
-                updateTokens();
-                node = new SyntaxNode("NMNEQ", null, null);
-                createChild(node, child);
+                match("TMNEQ");
+                temp = new SyntaxNode("NMNEQ", currentToken.getLexeme(), currentToken.getTokenEnumString());
             break;
 
             case "TSTEQ":
-                updateTokens();
-                node = new SyntaxNode("NSTEQ", null, null);
-                createChild(node, child);
-            break;
+                match("TSTEQ");
+                temp = new SyntaxNode("NSTEQ", currentToken.getLexeme(), currentToken.getTokenEnumString());
 
             case "TDVEQ":
-                updateTokens();
-                node = new SyntaxNode("NDVEQ", null, null);
-                createChild(node, child);
+                match("TDVEQ");
+                temp = new SyntaxNode("NDVEQ", currentToken.getLexeme(), currentToken.getTokenEnumString());
             break;
 
             default:
             //Error
             break;
         }
-        return node;
+        return temp;
     }
 
     //NINPUT <iostat> ::= In >> <vlist>
     //NOUTP <iostat> ::= Out << <prlist>
     //NOUTL <iostat> ::= Out << Line
     //NOUTL <iostat> ::= Out << <prlist> << Line
-    private SyntaxNode iostat(){
-        node = new SyntaxNode("NUNDF", null, null);
+    private SyntaxNode iostat(SyntaxNode parent){
         if (lookAheadToken.getTokenEnumString().equals("TINPT")){
-            updateTokens();
-            node = new SyntaxNode("NINPUT", null, null);
-            if (lookAheadToken.getTokenEnumString().equals("TGRGR")){
-                updateTokens();
-                vlist(node);
-            }// Error
+            match("TINPT");
+            SyntaxNode inpNode = new SyntaxNode("NINPUT", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            match("TGRGR");
+            inpNode = vlist(inpNode);
+            createChild(parent, inpNode);
         }else{
-            String[]array = {"TOUTP", "TLSLS"};
-            updateTokens(array);
-             if (lookAheadToken.getTokenEnumString().equals("TOUTL")){
-                updateTokens();
-                node = new SyntaxNode("NOUTL", null, null);
-             }else{
-                SyntaxNode temp = node;
-                prlist(temp);
+            match("TOUTP");
+            match("TLSLS");
+            if (lookAheadToken.getTokenEnumString().equals("TOUTL")){
+                SyntaxNode outLineNode = new SyntaxNode("NOUTL", currentToken.getLexeme(), currentToken.getTokenEnumString());
+                match("TOUTL");
+                createChild(parent, outLineNode);
+            }else{
+                SyntaxNode outputNode = new SyntaxNode("NOUTP", currentToken.getLexeme(), currentToken.getTokenEnumString());
+                outputNode = prlist(outputNode);
                 if (lookAheadToken.getTokenEnumString().equals("TLSLS")){
-                    updateTokens();
-                    if (lookAheadToken.getTokenEnumString().equals("TLINE")){
-                        updateTokens();
-                        node = new SyntaxNode("NOUTL", null, null);
-                        node.setLeft(temp.getLeft()); node.setMiddle(temp.getMiddle()); node.setRight(temp.getRight());
-                    }else{
-                        //Error
-                    }
+                    match("TLSLS");
+                    match("TOUTL");
+                    SyntaxNode outLineNode = new SyntaxNode("NOUTL", currentToken.getLexeme(), currentToken.getTokenEnumString());
+                    outLineNode.copyChildren(outputNode, outLineNode);
+                    createChild(parent, outLineNode);
                 }else{
-                    node = new SyntaxNode("NOUTP", null, null);
-                    node.setLeft(temp.getLeft()); node.setMiddle(temp.getMiddle()); node.setRight(temp.getRight());
+                    createChild(parent, outputNode);
                 }
-             }
-            
+            }
         }
-        // if (lookAheadToken.getTokenEnumString().equals("TOUTP")){
-        //     updateTokens();
-        //     if (lookAheadToken.getTokenEnumString().equals("TLSLS")){
-        //         updateTokens();
-        //         if (lookAheadToken.getTokenEnumString().equals("TOUTL")){
-        //             updateTokens();
-        //             node = new SyntaxNode("NOUTL", null, null);
-        //         }else{
-        //             prlist(node);
-        //         }
-        //     }
-        // }
-        return node;
+        return parent;
     }
 
-    //NCALL <callstat> ::= <id> ( <elist> ) | <id> ( ) is the same as NFCALL (already done)
-    private SyntaxNode callstat(){
-        node = new SyntaxNode("NUNDF", null, null);
-        if(currentToken.getTokenEnumString().equals("TIDEN")){
-            // Store identifier in the symbol table
-            if(lookAheadToken.getTokenEnumString().equals("(")){
-                node = new SyntaxNode("NCALL", currentToken.getLexeme(), currentToken.getTokenEnumString());
-                updateTokens();
-                if(lookAheadToken.getTokenEnumString().equals("TNOTT") ||   // this is the <elist> path
-                lookAheadToken.getTokenEnumString().equals("TIDEN") ||
-                lookAheadToken.getTokenEnumString().equals("TILIT") ||
-                lookAheadToken.getTokenEnumString().equals("TFLIT") ||
-                lookAheadToken.getTokenEnumString().equals("TTRUE") ||
-                lookAheadToken.getTokenEnumString().equals("TFALS") ||
-                lookAheadToken.getTokenEnumString().equals("(")){
-                    elist(node);
-                }else if(lookAheadToken.getTokenEnumString().equals("TRPAR")){
-                    updateTokens();
-                }else{
-                    System.out.println("Error: Expected a valid parameter");
-                }
-            }else{
-                System.out.println("Error: Expected left parenthesis");
-            }
-        }else{
-            System.out.println("Error: Expected an identifier");
+    //NCALL <callstat> ::= <id> ( <elist> ) | <id> ()
+    private SyntaxNode callstat(SyntaxNode parent){
+        SyntaxNode callNode = new SyntaxNode("NCALL", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        match("TLPAR");
+        if (!lookAheadToken.getTokenEnumString().equals("TRPAR")){
+            callNode = elist(callNode);
         }
-        return node;
+        match("TRPAR");
+        createChild(parent, callNode);
+        return parent;
     }
 
     //NRETN <returnstat> ::= return void | return <expr>
-    private SyntaxNode returnstat(){
-        node = new SyntaxNode("NUNDF", null, null);
-        if(lookAheadToken.getTokenEnumString().equals("TRETN")){
-            updateTokens();
-            node = new SyntaxNode("NRETN", currentToken.getLexeme(), currentToken.getTokenEnumString());
-            if(lookAheadToken.getTokenEnumString().equals("TVOID")){
-                updateTokens();
-                // Store TRETN in symbol table with void return.
-            }else{
-                // Store TRETN in symbol table with object return.
-                expr(node);
-            }
+    private SyntaxNode returnstat(SyntaxNode parent){
+        match("TRETN");
+        SyntaxNode retNode = new SyntaxNode("NRETN", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        if(!lookAheadToken.getTokenEnumString().equals("TVOID")){
+            retNode = expr(retNode);
+            // STORE THIS RETURN TYPE IN THE SYMBOL TABLE
+        }else{
+            // STORE VOID RETURN TYPE IN THE SYMBOL TABLE
         }
-        return node;
+        createChild(parent, retNode);
+        return parent;
     }
 
     //NVLIST <vlist> ::= <var> , <vlist>
-    private void vlist(SyntaxNode parent){
+    private SyntaxNode vlist(SyntaxNode parent){
+        match("TIDEN");
         SyntaxNode temp = var();
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
             updateTokens();
-            node = new SyntaxNode("NVLIST", null, null);
-            createChild(parent, node);
-            createChild(node, temp);
-            optVlist(node);
-        }else{  // If no condition satisfied, then let's suppose optVlist == epsilon (Special <vlist> ::= <var>)
-            createChild(parent, temp);
+            SyntaxNode vlistNode = new SyntaxNode("NVLIST", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            createChild(vlistNode, temp);
+            createChild(parent.getListLastNode(parent, "NVLIST"), vlistNode);
+            vlist(parent);
+        }else{  // (Special <vlist> ::= <var>)
+            createChild(parent.getListLastNode(parent, "NVLIST"), temp);
         }
+        return parent;
     }
 
     private SyntaxNode var(){
-        SyntaxNode varNode = new SyntaxNode("NUNDF", null, null);
-        match("TIDEN");
+        SyntaxNode varNode = new SyntaxNode("NSIMV", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        // match("TIDEN");
         if (lookAheadToken.getTokenEnumString().equals("TLBRK")){
             match("TLBRK");
             SyntaxNode temp = new SyntaxNode("NUNDF", null, null);
@@ -943,62 +743,8 @@ public class NonTerminalMethods {
                 varNode = new SyntaxNode("NAELT", currentToken.getLexeme(), currentToken.getTokenEnumString());
                 varNode.copyChildren(temp, varNode);
             }
-        }else{
-            varNode = new SyntaxNode("NSIMV", currentToken.getLexeme(), currentToken.getTokenEnumString());
         }
         return varNode;
-    }
-
-    // private SyntaxNode optExpr(){
-    //     if (lookAheadToken.getTokenEnumString().equals("[")){
-    //         updateTokens();
-    //         SyntaxNode temp = new SyntaxNode("NAELT", null, null);
-    //         expr(temp);
-    //          if (lookAheadToken.getTokenEnumString().equals("]")){
-    //             updateTokens();
-    //             node = optId(temp);
-    //          }else{
-    //             System.out.println("Error: Expected a closing bracket in line: " + currentToken.getLineNumber());
-    //          }
-    //         return node;
-    //     }else{  //NSIMV <var> ::= <id>
-    //         node = new SyntaxNode("NSIMV", currentToken.getLexeme(), currentToken.getTokenEnumString());
-    //         return node;
-    //     }
-    // }
-    
-    private SyntaxNode optId(SyntaxNode parent){
-        if (lookAheadToken.getTokenEnumString().equals(".")){   //NARRV <var> ::= <id>[<expr>] . <id>
-            updateTokens();
-            if(lookAheadToken.getTokenEnumString().equals("TIDEN")){
-                updateTokens();
-                // Symbol table - identifier
-                node = new SyntaxNode("NARRV", currentToken.getLexeme(), currentToken.getTokenEnumString());
-                node.setLeft(parent.getLeft()); node.setMiddle(parent.getMiddle()); node.setRight(parent.getRight());
-                return node;
-            }else{
-                System.out.println("Error: Expected an array identifier in line " + currentToken.getLineNumber());
-                node = new SyntaxNode("NUNDF", null, null);
-                return node;
-            }
-        }else{  //NAELT <var> ::= <id>[<expr>]
-            node = new SyntaxNode("NAELT", currentToken.getLexeme(), currentToken.getTokenEnumString());
-            node.setLeft(parent.getLeft()); node.setMiddle(parent.getMiddle()); node.setRight(parent.getRight());
-            return node;
-        }
-    }  
-
-    private void optVlist(SyntaxNode parent){
-        SyntaxNode temp = var();
-        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
-            updateTokens();
-            node = new SyntaxNode("NVLIST", null, null);
-            createChild(parent, node);
-            createChild(node, temp);
-            optVlist(node);
-        }else{      // If no condition satisfied, then let's suppose optVlist == epsilon (Special <vlist> ::= <var>)
-            createChild(parent, temp);
-        }
     }
 
     //NEXPL <elist> ::= <bool> , <elist>
@@ -1014,16 +760,6 @@ public class NonTerminalMethods {
             createChild(parent.getListLastNode(parent, "NEXPL"), boolNode);
         }
         return parent;
-    }
-
-    private void optElist(SyntaxNode parent, SyntaxNode node){
-        if(lookAheadToken.getTokenEnumString().equals("TCOMA")){
-            updateTokens();
-            createChild(parent, node);
-            elist(node);
-        }else{      // If no condition satisfied, then let's suppose optElist == epsilon (Special <elist> ::= <bool>)
-            parent.setLeft(node.getLeft());
-        }
     }
 
     //NBOOL <bool> ::= <bool> <logop> <rel>
@@ -1141,7 +877,7 @@ public class NonTerminalMethods {
     }
 
     // Special <expr> ::= <term> <expr'>
-    private SyntaxNode expr (SyntaxNode parent){
+    private SyntaxNode expr(SyntaxNode parent){
         SyntaxNode temp = new SyntaxNode("NUNDF", null, null);
         SyntaxNode termNode = term(temp);
         if (lookAheadToken.getTokenEnumString().equals("TPLUS")){   //NADD <expr'> ::= + <term> <expr'>
@@ -1260,32 +996,32 @@ public class NonTerminalMethods {
     }
 
     //NPRLST <prlist> ::= <printitem> , <prlist>
-    private void prlist(SyntaxNode parent){
-        // Create new node NPRLST
-        printitem(parent);
-        optprlist(parent);
-    }
-
-    private void printitem(SyntaxNode parent){
-        if(lookAheadToken.getTokenEnumString().equals("TSTRG")){    //NSTRG <printitem> ::= <string>
-            updateTokens(); 
-            node = new SyntaxNode("NSTRG", currentToken.getLexeme(), currentToken.getTokenEnumString());
-            createChild(parent, node);
-            // Symbol table - string
-        }else{
-            expr(parent); //Special <printitem> ::= <expr>
-        }
-    }
-
-    private void optprlist(SyntaxNode parent){
-        if(lookAheadToken.getTokenEnumString().equals("TCOMA")){
-            updateTokens();
+    //Special <prlist> ::= <printitem>)
+    private SyntaxNode prlist(SyntaxNode parent){
+        SyntaxNode temp = new SyntaxNode("NUNDF", null, null);
+        temp = printitem(temp);
+        if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            match("TCOMA");
+            SyntaxNode prlistNode = new SyntaxNode("NPRLS", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            prlistNode.copyChildren(temp, prlistNode);
+            createChild(parent.getListLastNode(parent, "NPRLST"), prlistNode);
             prlist(parent);
+        }else{
+            createChild(parent.getListLastNode(parent, "NPRLST"), temp.getLeft());
         }
-        // If no condition satisfied, then let's suppose optprlist == epsilon (Special <prlist> ::= <printitem>)
+        return parent;
     }
 
-
+    private SyntaxNode printitem(SyntaxNode parent){
+        if(lookAheadToken.getTokenEnumString().equals("TSTRG")){    //NSTRG <printitem> ::= <string>
+            match("TSTRG");
+            SyntaxNode strNode = new SyntaxNode("NSTRG", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            createChild(parent, strNode);
+        }else{
+            parent = expr(parent); //Special <printitem> ::= <expr>
+        }
+        return parent;
+    }
 }
 
 
