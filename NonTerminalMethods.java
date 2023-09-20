@@ -13,9 +13,6 @@
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
-
-import javax.swing.plaf.synth.SynthPasswordFieldUI;
-
 import java.util.ArrayList;
 
 //Hashmap methods
