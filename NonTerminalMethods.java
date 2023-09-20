@@ -185,14 +185,16 @@ public class NonTerminalMethods {
     //NFUNCS <funcs> ::= <func> <funcs>
     //Special <funcs> ::= ε
     private SyntaxNode funcs(SyntaxNode parent){
-        SyntaxNode funcNode = func();
         if (lookAheadToken.getTokenEnumString().equals("TFUNC")){
-            SyntaxNode temp = new SyntaxNode("NFUNCS", currentToken.getLexeme(), currentToken.getTokenEnumString());
-            createChild(temp, funcNode);
-            createChild(parent.getListLastNode(parent, "NFUNCS"), temp);
-            funcs(parent);
-        }else{
-            createChild(parent.getListLastNode(parent, "NFUNCS"), funcNode);
+            SyntaxNode funcNode = func();
+            if (lookAheadToken.getTokenEnumString().equals("TFUNC")){
+                SyntaxNode temp = new SyntaxNode("NFUNCS", currentToken.getLexeme(), currentToken.getTokenEnumString());
+                createChild(temp, funcNode);
+                createChild(parent.getListLastNode(parent, "NFUNCS"), temp);
+                funcs(parent);
+            }else{
+                createChild(parent.getListLastNode(parent, "NFUNCS"), funcNode);
+            }
         }
         return parent;
     }
@@ -214,7 +216,7 @@ public class NonTerminalMethods {
     //NSDLST <slist> ::= <sdecl> , <slist>
     //Special <slist> ::= <sdecl>
     private SyntaxNode slist(SyntaxNode parent){
-        SyntaxNode sdeclNode = sdecl();
+        SyntaxNode sdeclNode = sdecl(declPrefix());
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
             match("TCOMA");
             SyntaxNode sdlistNode = new SyntaxNode("NSDLST", currentToken.getLexeme(), currentToken.getTokenEnumString());
@@ -268,8 +270,7 @@ public class NonTerminalMethods {
     //NFLIST <fields> ::= <sdecl> , <fields>
     //Special <fields> ::= <sdecl>
     private SyntaxNode fields(SyntaxNode parent){
-        declPrefix();
-        SyntaxNode sdeclNode = sdecl();
+        SyntaxNode sdeclNode = sdecl(declPrefix());
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
             match("TCOMA");
             SyntaxNode temp = new SyntaxNode("NFLIST",  currentToken.getLexeme(), currentToken.getTokenEnumString());
@@ -282,24 +283,25 @@ public class NonTerminalMethods {
         return parent;
     }
 
-    private void declPrefix (){
+    private Token declPrefix (){
         match("TIDEN");
+        Token ident = currentToken;
         match("TCOLN");
         // STORE THIS IDENTIFIERS IN THE SYMBOL TABLE
+        return ident;
     }
 
     //NSDECL <sdecl> ::= <id> : <stype>
-    private SyntaxNode sdecl(){
+    private SyntaxNode sdecl(Token ident){
         stype();
-        SyntaxNode temp = new SyntaxNode("NSDECL", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        SyntaxNode temp = new SyntaxNode("NSDECL", ident.getLexeme(), ident.getTokenEnumString());
         return temp;
     }
 
     //NALIST <arrdecls> ::= <arrdecl> , <arrdecls>
     //Special <arrdecls> ::= <arrdecl>
     private SyntaxNode arrdecls(SyntaxNode parent){
-        declPrefix();
-        SyntaxNode declNode = arrdecl();
+        SyntaxNode declNode = arrdecl(declPrefix());
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
             match("TCOMA");
             SyntaxNode listNode = new SyntaxNode("NALIST", currentToken.getLexeme(), currentToken.getTokenEnumString());
@@ -313,10 +315,10 @@ public class NonTerminalMethods {
     }
 
     //NARRD <arrdecl> ::= <id> : <typeid>
-    private SyntaxNode arrdecl(){
+    private SyntaxNode arrdecl(Token ident){
         match("TIDEN");
         // STORE THIS ARRAY TYPE IN THE SYMBOL TABLE
-        SyntaxNode temp = new SyntaxNode("NARRD", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        SyntaxNode temp = new SyntaxNode("NARRD", ident.getLexeme(), ident.getTokenEnumString());
         return temp;
     }
 
@@ -378,20 +380,19 @@ public class NonTerminalMethods {
         if (lookAheadToken.getTokenEnumString().equals("TCNST")){       //NARRC <param> ::= const <arrdecl>
             match("TCNST");
             paramNode = new SyntaxNode("NARRC", currentToken.getLexeme(), currentToken.getTokenEnumString());
-            declPrefix();
-            SyntaxNode temp = arrdecl();
+            SyntaxNode temp = arrdecl(declPrefix());
             createChild(paramNode, temp);
         }else{
-            declPrefix();
+            Token ident = declPrefix();
             if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
                 match("TIDEN");
                 paramNode = new SyntaxNode("NARRP", currentToken.getLexeme(), currentToken.getTokenEnumString());
                 declPrefix();
-                SyntaxNode temp = arrdecl();
+                SyntaxNode temp = arrdecl(ident);
                 createChild(paramNode, temp);
             }else{
                 paramNode = new SyntaxNode("NSIMP", currentToken.getLexeme(), currentToken.getTokenEnumString());
-                SyntaxNode temp = sdecl();
+                SyntaxNode temp = sdecl(ident);
                 createChild(paramNode, temp);
             }
         }
@@ -432,12 +433,12 @@ public class NonTerminalMethods {
 
     //Special <decl> ::= <sdecl> | <arrdecl>
     private SyntaxNode decl(){
-        declPrefix();
+        Token ident = declPrefix();
         SyntaxNode temp = new SyntaxNode("NUNDF", null, null);
         if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-            temp = arrdecl();
+            temp = arrdecl(ident);
         }else{
-            temp = sdecl();
+            temp = sdecl(ident);
         }
         return temp;
     }
@@ -606,7 +607,9 @@ public class NonTerminalMethods {
         SyntaxNode varNode = var();
         SyntaxNode asgnNode = asgnop();
         createChild(asgnNode, varNode);
-        createChild(asgnNode, bool());
+        // createChild(asgnNode, bool());
+        // for me expr is better than bool in this case
+        asgnNode = expr(asgnNode);
         return asgnNode;
     }
 

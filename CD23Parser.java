@@ -30,11 +30,12 @@ public class CD23Parser {
     private static NonTerminalMethods nonTerminalMethods = new NonTerminalMethods();
     private static SyntaxNode root;
     private static Stack<SyntaxNode> nodeStack = new Stack<SyntaxNode>();
+    private static Integer column = 0;
     // private static Map<String, SymbolForTable> symbolTable = new HashMap<>();
 
     private static void printNodes (SyntaxNode root){
         nodeStack.push(root);
-        System.out.println(root.getNodeValue() + " " + root.getSymbolValue());
+        printElement(nodeStack);
         while(nodeStack.size() > 0){
             if(nodeStack.lastElement().getLeft() != null){
                 nodeStack.push(nodeStack.lastElement().getLeft());
@@ -63,13 +64,31 @@ public class CD23Parser {
     }
 
     private static void printElement(Stack<SyntaxNode> nodeStack){
-        System.out.print(nodeStack.lastElement().getNodeValue());
-        if (nodeStack.lastElement().getSymbolValue() != null){
-            System.out.println(" " + nodeStack.lastElement().getSymbolValue());
-        }else{
+        String output = nodeStack.lastElement().getNodeValue() + " ";
+        while(output.length() % 7 != 0){
+            output = output.concat(" ");
+        }
+        System.out.print(output);
+        column++;
+        if (column >= 10){
+            column = 0;
             System.out.println();
         }
+        if (!nodeStack.lastElement().getSymbolValue().equals("")){
+            output = nodeStack.lastElement().getSymbolValue() + " ";
+            while(output.length() % 7 != 0){
+                output = output.concat(" ");
+            }
+        System.out.print(output);
+        column++;
+        if (column >= 10){
+            column = 0;
+            System.out.println();
+        }
+        }
+        
     }
+
 
     public static void main (String[] args) throws IOException{
         if (args.length > 0)
