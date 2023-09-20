@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
 
-class CD23Scanner {
+public class CD23Scanner {
 
     private static String path = "C:\\Users\\cswif\\Desktop\\compilerdesign\\scripts\\CD23ExampleAST.txt";
     private static String file;
@@ -90,7 +90,7 @@ class CD23Scanner {
     }
 
 
-    public static ArrayList<Token> main (String[] args) throws IOException{
+    public ArrayList<Token> main (String[] args) throws IOException{
 
         // To put the path of the file you want to compile in the command window this way: java CD23Scanner.java [path]
         if (args.length > 0)

@@ -26,8 +26,11 @@ public class NonTerminalMethods {
     private static Token currentToken;
     private static Token lookAheadToken;
     private static Stack<Token> tokenStack = new Stack<Token>();
-    private static HashMap<String, SymbolForTable> symbolTable = new HashMap<>();
+    private static HashMap<String, ArrayList<SymbolForTable>> symbolTable = new HashMap<>();
     private static SyntaxNode root;
+    private static String tokenLexeme;
+    private static Integer lineNUmber;
+    private static Integer colNumber;
 
 
     public void transferTokensToStack(ArrayList<Token> tokenList){
@@ -70,8 +73,58 @@ public class NonTerminalMethods {
                 System.out.println("Error: Couldn't create a child since the parent node is full");
             }
         }
+
+        private static void burnTokens(){
+            boolean keepBurning = true;
+            while(keepBurning == true){
+                updateTokens();
+                if(currentToken.getTokenEnumString().equals("TBEGN")){
+                    keepBurning = false;
+                }
+                if(currentToken.getTokenEnumString().equals("TSEMI")){
+                    keepBurning = false;
+                }
+                if(currentToken.getTokenEnumString().equals("TMAIN")){
+                    keepBurning = false;
+                }
+                if(currentToken.getTokenEnumString().equals("TFUNC")){
+                    keepBurning = false;
+                }
+            }
+        }
+
+        private static void createBaseSymbolTable(){
+            symbolTable.put("integer", new ArrayList<SymbolForTable>());
+            symbolTable.put("real", new ArrayList<SymbolForTable>());
+            symbolTable.put("boolean", new ArrayList<SymbolForTable>());
+            symbolTable.put("function", new ArrayList<SymbolForTable>());
+        }
+
+        private static void setSymbolInfo(){
+            tokenLexeme = currentToken.getLexeme();
+            lineNUmber = currentToken.getLineNumber();
+            colNumber = currentToken.getColumnNumber();
+        }
+
+        private static void createSymbolForTable(String tokenType){
+            SymbolForTable temp;
+            if(tokenType.equals("TINTG")){
+                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "integer", tokenLexeme);
+            }
+            else if(tokenType.equals("TREAL")){
+                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "real", tokenLexeme);
+            }
+            else if(tokenType.equals("TFUNC")){
+                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "func", tokenLexeme, null);
+            }
+            else{
+                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "boolean", tokenLexeme);
+            }
+            symbolTable.get(temp.getType()).add(temp);
+        }
     
         public SyntaxNode superMethod (){
+            createBaseSymbolTable();
             nprog();
             return root;
         }
@@ -450,7 +503,8 @@ public class NonTerminalMethods {
         lookAheadToken.getTokenEnumString().equals("TTRUE") ||
         lookAheadToken.getTokenEnumString().equals("TFALS")){
             updateTokens();
-            // STORE THIS IDENTIFIER DECLARATION TYPE IN THE SYMBOL TABLE (and link it to its identifier)
+            setSymbolInfo();
+            createSymbolForTable(currentToken.getTokenEnumString());
         }else{
             System.out.println("Error: Expected an integer, real or boolean in line: " + currentToken.getLineNumber());
         }
