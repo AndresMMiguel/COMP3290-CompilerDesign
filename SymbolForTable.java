@@ -10,15 +10,18 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+import java.util.List;
+
 public class SymbolForTable {
     //id[0] line[1] col[2] type[3] base[4]  offset[5]  glyph[6]
     private String id;
     private Integer line;
     private Integer col;
     private String type;
-    private String base;
+    private Integer base;
     private Integer offset;
     private String glyph;
+    private List<Object> parameterList;
 
 /* simple symbol table example
 
@@ -32,14 +35,25 @@ id:i         Line:4  Col:5  Type:integer   Base:   Offset:   GLypth:"i"
 id:j         Line:4  Col:16 Type:integer   Base:   Offset:   GLypth:"j"
 id:k         Line:4  Col:27 Type:integer   Base:   Offset:   GLypth:"k"
 */
-    public SymbolForTable(String id, Integer line, Integer col, String type, String base, Integer offset, String glyph){
+    public SymbolForTable(String id, Integer line, Integer col, String type, String glyph){
         this.id = id;
         this.line = line;
         this.col = col;
         this.type = type;
-        this.base = base;
-        this.offset = offset;
+        this.base = null;
+        this.offset = null;
         this.glyph = glyph;    
+    }
+
+    public SymbolForTable(String id, Integer line, Integer col, String type, String glyph, List<Object> parameters){
+        this.id = id;
+        this.line = line;
+        this.col = col;
+        this.type = type;
+        this.base = null;
+        this.offset = null;
+        this.glyph = glyph;
+        this.parameterList = parameters;
     }
 
     public String getid(){
@@ -54,7 +68,7 @@ id:k         Line:4  Col:27 Type:integer   Base:   Offset:   GLypth:"k"
     public String getType(){
         return type;
     }
-    public String getBase(){
+    public Integer getBase(){
         return base;
     }
     public Integer getOffset(){
@@ -62,5 +76,14 @@ id:k         Line:4  Col:27 Type:integer   Base:   Offset:   GLypth:"k"
     }
     public String getGlyph(){
         return glyph;
+    }
+    public void setBase(Integer base){
+        this.base = base;
+    }
+    public void setOffset(Integer offset){
+        this.offset = offset;
+    }
+    public void addParameter(Object parmeter){
+        parameterList.add(parmeter);
     }
 }
