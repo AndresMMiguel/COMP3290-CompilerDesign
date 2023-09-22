@@ -27,6 +27,7 @@ public class NonTerminalMethods {
     private static Stack<Token> tokenStack = new Stack<Token>();
     private static HashMap<String, ArrayList<SymbolForTable>> symbolTable = new HashMap<>();
     private static SyntaxNode root;
+    private static Boolean isBool = false;
     private static String tokenLexeme;
     private static Integer lineNUmber;
     private static Integer colNumber;
@@ -825,8 +826,16 @@ public class NonTerminalMethods {
 
     //NBOOL <bool> ::= <bool> <logop> <rel>
     private SyntaxNode bool(){
-        boolNode = bool2(boolNode);
-        return boolNode;
+        SyntaxNode temp = new SyntaxNode("NUNDF", null, null);
+        temp = bool2(temp);
+        if (isBool){
+            isBool = false;
+            SyntaxNode boolNode = new SyntaxNode("NBOOL", "", "");
+            boolNode.copyChildren(temp, boolNode);
+            return boolNode;
+        }else{
+            return temp.getLeft();
+        }
     }
 
     private SyntaxNode bool2(SyntaxNode parentNode){
@@ -835,6 +844,7 @@ public class NonTerminalMethods {
         if(lookAheadToken.getTokenEnumString().equals("TTAND") ||
         lookAheadToken.getTokenEnumString().equals("TTTOR") ||
         lookAheadToken.getTokenEnumString().equals("TTXOR")){
+            isBool = true;
             SyntaxNode logopNode = logop();
             logopNode.copyChildren(relNode, logopNode);
             createChild(parentNode.getBoolLastNode(parentNode), logopNode);
@@ -847,9 +857,12 @@ public class NonTerminalMethods {
     }
 
     //NNOT <rel> ::= ! <expr> <relop> <expr>
+    //Special <rel> ::= <expr><relop><expr>
+    //Special <rel> ::= <expr>
     private SyntaxNode rel(SyntaxNode parent){
         SyntaxNode relNode = new SyntaxNode("NUNDF", null, null);
         if(lookAheadToken.getTokenEnumString().equals("TNOTT")){
+            isBool = true;
             match("TNOTT");
             SyntaxNode notNode = new SyntaxNode("NNOT", currentToken.getLexeme(), currentToken.getTokenEnumString());
             SyntaxNode exprTemp = expr(relNode);
@@ -866,11 +879,12 @@ public class NonTerminalMethods {
             lookAheadToken.getTokenEnumString().equals("TLESS") ||
             lookAheadToken.getTokenEnumString().equals("TLEQ") ||
             lookAheadToken.getTokenEnumString().equals("TGEQL")){
+                isBool = true;
                 SyntaxNode relopNode = optRel();
                 relopNode.copyChildren(exprTemp, relopNode);
                 relopNode = expr(relopNode);
                 createChild(parent, relopNode); 
-            }else{
+            }else{                                          //Special <rel> ::= <expr>
                 parent = exprTemp;
             }
         }
