@@ -11,7 +11,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Stack;
 import java.util.ArrayList;
 
@@ -51,10 +50,13 @@ public class NonTerminalMethods {
 
         //updates current token if condition satisfied
         private static void match(String token){
-            if (lookAheadToken.getTokenEnumString().equals(token)){
+            if (lookAheadToken.getTokenEnumString().equals(token))
+            {
                 updateTokens();
-            }else{
-                System.out.println("Error: Expected token " + token + " in line: " + lookAheadToken.getLineNumber());
+            }
+            else
+            {
+                System.out.println("Error: Expected token " + token + " in line: " + currentToken.getLineNumber());
                 //Call to error function
             }
         
@@ -78,16 +80,16 @@ public class NonTerminalMethods {
             boolean keepBurning = true;
             while(keepBurning == true){
                 updateTokens();
-                if(currentToken.getTokenEnumString().equals("TBEGN")){
+                if(lookAheadToken.getTokenEnumString().equals("TBEGN")){
                     keepBurning = false;
                 }
-                if(currentToken.getTokenEnumString().equals("TSEMI")){
+                if(lookAheadToken.getTokenEnumString().equals("TSEMI")){
                     keepBurning = false;
                 }
-                if(currentToken.getTokenEnumString().equals("TMAIN")){
+                if(lookAheadToken.getTokenEnumString().equals("TMAIN")){
                     keepBurning = false;
                 }
-                if(currentToken.getTokenEnumString().equals("TFUNC")){
+                if(lookAheadToken.getTokenEnumString().equals("TFUNC")){
                     keepBurning = false;
                 }
             }
@@ -256,7 +258,9 @@ public class NonTerminalMethods {
     private SyntaxNode mainbody(SyntaxNode parent){
          match("TMAIN");
          SyntaxNode mainNode = new SyntaxNode("NMAIN", currentToken.getLexeme(), currentToken.getTokenEnumString());
-         mainNode = slist(mainNode);
+         if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
+            mainNode = slist(mainNode);
+         }
          match("TBEGN");
         mainNode = stats(mainNode);
         match("TTEND");
@@ -500,8 +504,7 @@ public class NonTerminalMethods {
     private void stype(){
         if (lookAheadToken.getTokenEnumString().equals("TINTG") ||
         lookAheadToken.getTokenEnumString().equals("TREAL") ||
-        lookAheadToken.getTokenEnumString().equals("TTRUE") ||
-        lookAheadToken.getTokenEnumString().equals("TFALS")){
+        lookAheadToken.getTokenEnumString().equals("TBOOL")){
             updateTokens();
             setSymbolInfo();
             createSymbolForTable(currentToken.getTokenEnumString());
@@ -523,7 +526,8 @@ public class NonTerminalMethods {
             temp = stat(temp);
             match("TSEMI");
         }
-        if (!lookAheadToken.getTokenEnumString().equals("TTEND")){
+        if (!lookAheadToken.getTokenEnumString().equals("TTEND") &&
+        !lookAheadToken.getTokenEnumString().equals("TELSE")){
                 SyntaxNode statsNode = new SyntaxNode("NSTATS", currentToken.getLexeme(), currentToken.getTokenEnumString());
                 statsNode.copyChildren(temp, statsNode);
                 createChild(parent.getListLastNode(parent, "NSTATS"), statsNode);
@@ -637,6 +641,7 @@ public class NonTerminalMethods {
     //NIFTH <ifstat> ::= if ( <bool> ) <stats> end
     //NIFTE <ifstat> ::= if ( <bool> ) <stats> else <stats> end
     private SyntaxNode ifstat(SyntaxNode parent){
+        if (lookAheadToken.getTokenEnumString().equals("TIFTH")){
         match("TIFTH");
         SyntaxNode ifNode = new SyntaxNode("NIFTH", currentToken.getLexeme(), currentToken.getTokenEnumString());
         match("TLPAR");
@@ -652,7 +657,8 @@ public class NonTerminalMethods {
         }else{
             createChild(parent, ifNode);
         }
-        match("TELSE");
+        match("TTEND");
+        }
         return parent;
     }
 
@@ -661,9 +667,7 @@ public class NonTerminalMethods {
         SyntaxNode varNode = var();
         SyntaxNode asgnNode = asgnop();
         createChild(asgnNode, varNode);
-        // createChild(asgnNode, bool());
-        // for me expr is better than bool in this case
-        asgnNode = expr(asgnNode);
+        createChild(asgnNode, bool());
         return asgnNode;
     }
 
@@ -821,7 +825,6 @@ public class NonTerminalMethods {
 
     //NBOOL <bool> ::= <bool> <logop> <rel>
     private SyntaxNode bool(){
-        SyntaxNode boolNode = new SyntaxNode("NBOOL", currentToken.getLexeme(), currentToken.getTokenEnumString());
         boolNode = bool2(boolNode);
         return boolNode;
     }

@@ -34,7 +34,7 @@ import java.util.Stack;
 
 public class CD23Parser {
     private static CD23Scanner scanner = new CD23Scanner();
-    private static String[] scannerArgs = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/CD23Example.txt"};
+    private static String[] scannerArgs = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/testfiles_assignment2/SimpleMath.txt"};
     private static ArrayList<Token> tokenList;
     private static NonTerminalMethods nonTerminalMethods = new NonTerminalMethods();
     private static SyntaxNode root;
