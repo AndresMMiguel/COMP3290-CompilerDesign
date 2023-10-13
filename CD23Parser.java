@@ -12,9 +12,14 @@
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Stack;
+
+//Hashmap methods
+//  hashMap.put(key, object)
+//  SymbolForTable currentSymbolInfo = hashMap.get(key)
+//  hashMap.remove(key)
+//  boolean containsKey = hashMap.containsKey(key)
+//  hashMap.keySet()
 
 //Hashmap methods
 //  hashMap.put(key, object)
@@ -25,16 +30,18 @@ import java.util.Stack;
 
 public class CD23Parser {
     private static CD23Scanner scanner = new CD23Scanner();
-    private static String[] scannerArgs = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/CD23Example.txt"};
+    private static String[] scannerArgs = {"C:\\Users\\cswif\\Desktop\\compilerdesign\\testfiles_assignment2/HelloWorld.txt"};
     private static ArrayList<Token> tokenList;
     private static NonTerminalMethods nonTerminalMethods = new NonTerminalMethods();
     private static SyntaxNode root;
     private static Stack<SyntaxNode> nodeStack = new Stack<SyntaxNode>();
+    private static Integer column = 0;
+    private static CodeGeneration codeGen;
     // private static Map<String, SymbolForTable> symbolTable = new HashMap<>();
 
     private static void printNodes (SyntaxNode root){
         nodeStack.push(root);
-        System.out.println(root.getNodeValue() + " " + root.getSymbolValue());
+        printElement(nodeStack);
         while(nodeStack.size() > 0){
             if(nodeStack.lastElement().getLeft() != null){
                 nodeStack.push(nodeStack.lastElement().getLeft());
@@ -63,12 +70,29 @@ public class CD23Parser {
     }
 
     private static void printElement(Stack<SyntaxNode> nodeStack){
-        System.out.print(nodeStack.lastElement().getNodeValue());
-        if (nodeStack.lastElement().getSymbolValue() != null){
-            System.out.println(" " + nodeStack.lastElement().getSymbolValue());
-        }else{
+        String output = nodeStack.lastElement().getNodeValue() + " ";
+        while(output.length() % 7 != 0){
+            output = output.concat(" ");
+        }
+        System.out.print(output);
+        column++;
+        if (column >= 10){
+            column = 0;
             System.out.println();
         }
+        if (!nodeStack.lastElement().getSymbolValue().equals("")){
+            output = nodeStack.lastElement().getSymbolValue() + " ";
+            while(output.length() % 7 != 0){
+                output = output.concat(" ");
+            }
+        System.out.print(output);
+        column++;
+        if (column >= 10){
+            column = 0;
+            System.out.println();
+        }
+        }
+        
     }
 
     public static void main (String[] args) throws IOException{
@@ -78,5 +102,6 @@ public class CD23Parser {
         nonTerminalMethods.transferTokensToStack(tokenList);
         root = nonTerminalMethods.superMethod();
         printNodes(root);        
+        codeGen.generateCode(root);
     }
 }
