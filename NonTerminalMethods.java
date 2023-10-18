@@ -531,7 +531,8 @@ public class NonTerminalMethods {
             match("TSEMI");
         }
         if (!lookAheadToken.getTokenEnumString().equals("TTEND") &&
-        !lookAheadToken.getTokenEnumString().equals("TELSE")){
+        !lookAheadToken.getTokenEnumString().equals("TELSE") &&
+        !lookAheadToken.getTokenEnumString().equals("TUNTL")){
                 SyntaxNode statsNode = new SyntaxNode("NSTATS", currentToken.getLexeme(), currentToken.getTokenEnumString());
                 statsNode.copyChildren(temp, statsNode);
                 createChild(parent.getListLastNode(parent, "NSTATS"), statsNode);
@@ -591,7 +592,7 @@ public class NonTerminalMethods {
     //NFORL <forstat> ::= for ( <asgnlist> ; <bool> ) <stats> end
     private SyntaxNode forstat(SyntaxNode parent){
         match("TTFOR");
-        SyntaxNode forNode = new SyntaxNode("NFORL", null, null);
+        SyntaxNode forNode = new SyntaxNode("NFORL", currentToken.getLexeme(), currentToken.getTokenEnumString());
         match("TLPAR");
         forNode = asgnlist(forNode);
         match("TSEMI");
@@ -606,7 +607,7 @@ public class NonTerminalMethods {
     //NREPT <repstat> ::= repeat ( <asgnlist> ) <stats> until <bool>
     private SyntaxNode repstat(SyntaxNode parent){
         match("TREPT");
-        SyntaxNode reptNode = new SyntaxNode("NREPT", null, null);
+        SyntaxNode reptNode = new SyntaxNode("NREPT", currentToken.getLexeme(), currentToken.getTokenEnumString());
         match("TLPAR");
         reptNode = asgnlist(reptNode);
         match("TRPAR");
@@ -632,7 +633,7 @@ public class NonTerminalMethods {
         SyntaxNode asgnNode = asgnstat();
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
             match("TCOMA");
-            SyntaxNode alistNode = new SyntaxNode("NASGNS", null, null);
+            SyntaxNode alistNode = new SyntaxNode("NASGNS", currentToken.getLexeme(), currentToken.getTokenEnumString());
             createChild(alistNode, asgnNode);
             createChild(parent.getListLastNode(parent, "NASGNS"), alistNode);
             alist(parent);
@@ -1062,7 +1063,6 @@ public class NonTerminalMethods {
 
     //NFCALL <fncall> ::= <id> (<elist>) | <id> ()
     private SyntaxNode fncall(){
-        match("TIDEN");
         SyntaxNode fnNode = new SyntaxNode("NFCALL", currentToken.getLexeme(), currentToken.getTokenEnumString());
         match("TLPAR");
         if (!lookAheadToken.getTokenEnumString().equals("TRPAR")){
@@ -1079,7 +1079,7 @@ public class NonTerminalMethods {
         temp = printitem(temp);
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
             match("TCOMA");
-            SyntaxNode prlistNode = new SyntaxNode("NPRLS", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            SyntaxNode prlistNode = new SyntaxNode("NPRLST", currentToken.getLexeme(), currentToken.getTokenEnumString());
             prlistNode.copyChildren(temp, prlistNode);
             createChild(parent.getListLastNode(parent, "NPRLST"), prlistNode);
             prlist(parent);
