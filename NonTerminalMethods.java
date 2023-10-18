@@ -29,7 +29,7 @@ public class NonTerminalMethods {
     private static SyntaxNode root;
     private static Boolean isBool = false;
     private static String tokenLexeme;
-    private static Integer lineNUmber;
+    private static Integer lineNumber;
     private static Integer colNumber;
 
 
@@ -105,23 +105,24 @@ public class NonTerminalMethods {
 
         private static void setSymbolInfo(){
             tokenLexeme = currentToken.getLexeme();
-            lineNUmber = currentToken.getLineNumber();
+            lineNumber = currentToken.getLineNumber();
             colNumber = currentToken.getColumnNumber();
         }
 
         private static void createSymbolForTable(String tokenType){
             SymbolForTable temp;
+            setSymbolInfo();
             if(tokenType.equals("TINTG")){
-                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "integer", tokenLexeme);
+                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "integer", tokenLexeme);
             }
             else if(tokenType.equals("TREAL")){
-                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "real", tokenLexeme);
+                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "real", tokenLexeme);
             }
             else if(tokenType.equals("TFUNC")){
-                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "func", tokenLexeme, null);
+                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "func", tokenLexeme, null);
             }
             else{
-                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "boolean", tokenLexeme);
+                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "boolean", tokenLexeme);
             }
             symbolTable.get(temp.getType()).add(temp);
         }
@@ -346,6 +347,7 @@ public class NonTerminalMethods {
         Token ident = currentToken;
         match("TCOLN");
         // STORE THIS IDENTIFIERS IN THE SYMBOL TABLE
+        createSymbolForTable(ident.getTokenEnumString());
         return ident;
     }
 
@@ -385,6 +387,7 @@ public class NonTerminalMethods {
         match("TFUNC");
         match("TIDEN");
         // STORE THIS FUNCTION IDENTIFIER IN THE SYMBOL TABLE
+        createSymbolForTable(currentToken.getTokenEnumString());
         SyntaxNode funcNode = new SyntaxNode("NFUND", currentToken.getLexeme(), currentToken.getTokenEnumString());
         match("TLPAR");
         funcNode = plist(funcNode);
