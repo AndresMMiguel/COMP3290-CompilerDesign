@@ -337,45 +337,45 @@ public class CD23Scanner {
     }
 
     // Function to print the tokens from the scanner as per spec in assignment 1
-    private static void printTokens(){
-        int printCounter = 0;
-        Token undefinded = token.returnUndefinedToken("",line,column);
-        Token stringLit = token.returnStringToken("",line,column);
-        for(Token token:tokenList){
-            //if(token.getLexeme().equals("")){
-            if(token.getTokenEnum() == undefinded.getTokenEnum()){
-                //System.out.print('\n');
-                System.out.println(token.getTokenEnum());
-                System.out.println(token.getLexeme());
-                printCounter = 0;
-            }
-            else if(printCounter < 10){
-                System.out.print(token.getTokenEnum()+" " + token.getLexeme()+" ");
-                printCounter++;
-            }
-            else if(token.getTokenEnum() == stringLit.getTokenEnum()){
-                System.out.println(token.getTokenEnum()+" "+ token.getLexeme()+'\n');
-                printCounter = 0;
-            }
-            //else{
-                //System.out.println( token.getTokenEnum() + token.getLexeme());
-                //printCounter = 0;
-            //}
-            if(printCounter >= 10){
-                printCounter = 0;
-                System.out.print('\n');
-            }
-        }
-        System.out.println("\n\n\nLexical Errors");
-        System.out.println("=============================================================");
-        for(Token token:tokenList){
-            if(token.getLexeme().contains("Lexical error")){
-                String message = "";
-                for(int i = 14; i < token.getLexeme().length(); i++){
-                    message+= token.getLexeme().charAt(i);
-                }
-                System.out.println("lexical error (" + token.getLineNumber() + "," + token.getColumnNumber() + ") : " + message);
-            }
-        }
-    }
+    // private static void printTokens(){
+    //     int printCounter = 0;
+    //     Token undefinded = token.returnUndefinedToken("",line,column);
+    //     Token stringLit = token.returnStringToken("",line,column);
+    //     for(Token token:tokenList){
+    //         //if(token.getLexeme().equals("")){
+    //         if(token.getTokenEnum() == undefinded.getTokenEnum()){
+    //             //System.out.print('\n');
+    //             System.out.println(token.getTokenEnum());
+    //             System.out.println(token.getLexeme());
+    //             printCounter = 0;
+    //         }
+    //         else if(printCounter < 10){
+    //             System.out.print(token.getTokenEnum()+" " + token.getLexeme()+" ");
+    //             printCounter++;
+    //         }
+    //         else if(token.getTokenEnum() == stringLit.getTokenEnum()){
+    //             System.out.println(token.getTokenEnum()+" "+ token.getLexeme()+'\n');
+    //             printCounter = 0;
+    //         }
+    //         //else{
+    //             //System.out.println( token.getTokenEnum() + token.getLexeme());
+    //             //printCounter = 0;
+    //         //}
+    //         if(printCounter >= 10){
+    //             printCounter = 0;
+    //             System.out.print('\n');
+    //         }
+    //     }
+    //     System.out.println("\n\n\nLexical Errors");
+    //     System.out.println("=============================================================");
+    //     for(Token token:tokenList){
+    //         if(token.getLexeme().contains("Lexical error")){
+    //             String message = "";
+    //             for(int i = 14; i < token.getLexeme().length(); i++){
+    //                 message+= token.getLexeme().charAt(i);
+    //             }
+    //             System.out.println("lexical error (" + token.getLineNumber() + "," + token.getColumnNumber() + ") : " + message);
+    //         }
+    //     }
+    // }
 }

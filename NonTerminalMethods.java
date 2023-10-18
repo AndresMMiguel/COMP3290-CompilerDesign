@@ -77,24 +77,24 @@ public class NonTerminalMethods {
             }
         }
 
-        private static void burnTokens(){
-            boolean keepBurning = true;
-            while(keepBurning == true){
-                updateTokens();
-                if(lookAheadToken.getTokenEnumString().equals("TBEGN")){
-                    keepBurning = false;
-                }
-                if(lookAheadToken.getTokenEnumString().equals("TSEMI")){
-                    keepBurning = false;
-                }
-                if(lookAheadToken.getTokenEnumString().equals("TMAIN")){
-                    keepBurning = false;
-                }
-                if(lookAheadToken.getTokenEnumString().equals("TFUNC")){
-                    keepBurning = false;
-                }
-            }
-        }
+        // private static void burnTokens(){
+        //     boolean keepBurning = true;
+        //     while(keepBurning == true){
+        //         updateTokens();
+        //         if(lookAheadToken.getTokenEnumString().equals("TBEGN")){
+        //             keepBurning = false;
+        //         }
+        //         if(lookAheadToken.getTokenEnumString().equals("TSEMI")){
+        //             keepBurning = false;
+        //         }
+        //         if(lookAheadToken.getTokenEnumString().equals("TMAIN")){
+        //             keepBurning = false;
+        //         }
+        //         if(lookAheadToken.getTokenEnumString().equals("TFUNC")){
+        //             keepBurning = false;
+        //         }
+        //     }
+        // }
 
         private static void createBaseSymbolTable(){
             symbolTable.put("integer", new ArrayList<SymbolForTable>());
@@ -610,7 +610,7 @@ public class NonTerminalMethods {
         match("TLPAR");
         reptNode = asgnlist(reptNode);
         match("TRPAR");
-        reptNode = stat(reptNode);
+        reptNode = stats(reptNode);
         match("TUNTL");
         createChild(reptNode, bool());
         createChild(parent, reptNode);
@@ -688,8 +688,8 @@ public class NonTerminalMethods {
                 temp = new SyntaxNode("NASGN", currentToken.getLexeme(), currentToken.getTokenEnumString());
             break;
 
-            case "TPEQL":
-                match("TPEQL");
+            case "TPLEQ":
+                match("TPLEQ");
                 temp = new SyntaxNode("NPLEQ", currentToken.getLexeme(), currentToken.getTokenEnumString());
             break;
 
