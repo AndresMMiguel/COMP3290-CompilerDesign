@@ -11,18 +11,18 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Stack;
 
 public class CodeGeneration {
 
-    private static ArrayList<SymbolForTable> symbolTable = new ArrayList<SymbolForTable>();
-
-
-
-    public void generateCode(SyntaxNode root, ArrayList<SymbolForTable> symbolTable){
+    public void generateCode(Stack<SyntaxNode> nodeStack, ArrayList<SymbolForTable> symbolTable){
 
         System.out.println();
         SymbolForTable symbol;
+        while(nodeStack.isEmpty() != true){
+            System.out.println(nodeStack.pop());
+        }
+
         for(int x = 0; x < symbolTable.size(); x++){
             symbol = symbolTable.get(x);
             symbol.displaySymbol();

@@ -105,6 +105,6 @@ public class A2 {
         rootSymbolTable =  nonTerminalMethods.superMethod();
         printNodes(rootSymbolTable.getRoot()); 
         System.out.println();       
-        codeGen.generateCode(rootSymbolTable.getRoot(), rootSymbolTable.getSymbolTable());
+        codeGen.generateCode(nodeStack, rootSymbolTable.getSymbolTable());
     }
 }
