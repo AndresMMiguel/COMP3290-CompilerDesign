@@ -86,4 +86,7 @@ id:k         Line:4  Col:27 Type:integer   Base:   Offset:   GLypth:"k"
     public void addParameter(Object parmeter){
         parameterList.add(parmeter);
     }
+    public void displaySymbol(){
+        System.out.println("ID: "+id+ " | line: "+line+" | col: "+col+" | type: "+type+ " | base: "+base+" | offset: "+offset+ " | glyph: "+glyph);
+    }
 }

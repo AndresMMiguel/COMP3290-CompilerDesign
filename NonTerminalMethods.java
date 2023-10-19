@@ -10,7 +10,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-import java.util.HashMap;
 import java.util.Stack;
 import java.util.ArrayList;
 
@@ -25,12 +24,13 @@ public class NonTerminalMethods {
     private static Token currentToken;
     private static Token lookAheadToken;
     private static Stack<Token> tokenStack = new Stack<Token>();
-    private static HashMap<String, ArrayList<SymbolForTable>> symbolTable = new HashMap<>();
+    private static ArrayList<SymbolForTable> newSymbolTable = new ArrayList<SymbolForTable>();
     private static SyntaxNode root;
     private static Boolean isBool = false;
     private static String tokenLexeme;
-    private static Integer lineNUmber;
+    private static Integer lineNumber;
     private static Integer colNumber;
+    private static RootSymbolTable rootSymbolTable = new RootSymbolTable();
 
 
     public void transferTokensToStack(ArrayList<Token> tokenList){
@@ -96,40 +96,38 @@ public class NonTerminalMethods {
             }
         }
 
-        private static void createBaseSymbolTable(){
-            symbolTable.put("integer", new ArrayList<SymbolForTable>());
-            symbolTable.put("real", new ArrayList<SymbolForTable>());
-            symbolTable.put("boolean", new ArrayList<SymbolForTable>());
-            symbolTable.put("function", new ArrayList<SymbolForTable>());
+        private static void setSymbolInfo(Token token){
+            tokenLexeme = token.getLexeme();
+            lineNumber = token.getLineNumber();
+            colNumber = token.getColumnNumber();
+            System.out.println("lexeme: "+tokenLexeme+ " linenumber: "+lineNumber+ " col number: "+colNumber);
+            System.out.println();
         }
 
-        private static void setSymbolInfo(){
-            tokenLexeme = currentToken.getLexeme();
-            lineNUmber = currentToken.getLineNumber();
-            colNumber = currentToken.getColumnNumber();
-        }
-
-        private static void createSymbolForTable(String tokenType){
+        private static void symbolTableEntry(String tokenType){
             SymbolForTable temp;
+            System.out.println("token type: "+tokenType);
+            System.out.println();
             if(tokenType.equals("TINTG")){
-                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "integer", tokenLexeme);
+                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "integer", tokenLexeme);
             }
             else if(tokenType.equals("TREAL")){
-                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "real", tokenLexeme);
+                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "real", tokenLexeme);
             }
             else if(tokenType.equals("TFUNC")){
-                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "func", tokenLexeme, null);
+                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "func", tokenLexeme, null);
             }
             else{
-                temp = new SymbolForTable(tokenLexeme, lineNUmber, colNumber, "boolean", tokenLexeme);
-            }
-            symbolTable.get(temp.getType()).add(temp);
+                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "boolean", tokenLexeme);
+            }            
+            newSymbolTable.add(temp);
         }
     
-        public SyntaxNode superMethod (){
-            createBaseSymbolTable();
+        public RootSymbolTable superMethod (){
             nprog();
-            return root;
+            rootSymbolTable.setRoot(root);
+            rootSymbolTable.setSymbolTable(newSymbolTable);
+            return rootSymbolTable;
         }
 
 
@@ -346,6 +344,7 @@ public class NonTerminalMethods {
         Token ident = currentToken;
         match("TCOLN");
         // STORE THIS IDENTIFIERS IN THE SYMBOL TABLE
+        setSymbolInfo(ident);
         return ident;
     }
 
@@ -385,6 +384,10 @@ public class NonTerminalMethods {
         match("TFUNC");
         match("TIDEN");
         // STORE THIS FUNCTION IDENTIFIER IN THE SYMBOL TABLE
+        //createSymbolForTable(currentToken.getTokenEnumString());
+        setSymbolInfo(currentToken);
+        System.out.println("stop 2: "+currentToken.getTokenEnumString());
+        symbolTableEntry(currentToken.getTokenEnumString());
         SyntaxNode funcNode = new SyntaxNode("NFUND", currentToken.getLexeme(), currentToken.getTokenEnumString());
         match("TLPAR");
         funcNode = plist(funcNode);
@@ -507,8 +510,8 @@ public class NonTerminalMethods {
         lookAheadToken.getTokenEnumString().equals("TREAL") ||
         lookAheadToken.getTokenEnumString().equals("TBOOL")){
             updateTokens();
-            setSymbolInfo();
-            createSymbolForTable(currentToken.getTokenEnumString());
+            System.out.println("stop 3: "+currentToken.getTokenEnumString());
+            symbolTableEntry(currentToken.getTokenEnumString());
         }else{
             System.out.println("Error: Expected an integer, real or boolean in line: " + currentToken.getLineNumber());
         }
@@ -1099,66 +1102,3 @@ public class NonTerminalMethods {
 
 
 }
-
-
-
-/*
-Writing a Recursive Descent parser:
-
-
- *  void A() {
-1)      Choose an A-production, A → X1 X2 . . . Xk ;
-2)      for ( i = 1 to k ) {
-3)          if ( Xi is a nonterminal )
-4)              call procedure Xi () ;
-5)          else if ( Xi equals the current input symbol a )
-6)              advance the input to the next symbol;
-7)          else /* an error has occurred * / ;
-        }
-    }
-------------------------------------------------------------------------
-Use next token (lookahead) to choose (PREDICT) which production to
-‘mimic’.
-
-• Ex: B → b C D
-
-    B() {
-        if (lookahead == ‘b’)
-        { match(‘b’); C(); D(); }
-        else ...
-    }
-------------------------------------------------------------------------
-Also need the following:
-    match(symbol) {
-        if (symbol == lookahead)
-            lookahead = nexttoken()
-        else error() }
-
-    main() {
-        lookahead = nextoken();
-        S();    /// S is the start symbol 
-        if (lookahead == EOF) then accept
-        else reject
-        }
-    error() { ...
-        }
-
-------------------------------------------------------------------------
-    S() {
-        if (lookahead == a ) { match(a);B(); } S → a B
-        else if (lookahead == b) { match(b); C(); } S → b C
-        else error("expecting a or b");
-    }
-
-    B() {
-        if (lookahead == b)
-        {match(b); match(b); C();} B → b b C
-        else error();
-    }
-
-    C() {
-        if (lookahead == c)
-        { match(c) ; match(c) ;} C → c c
-        else error();
-    }
- */

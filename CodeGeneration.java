@@ -10,12 +10,23 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public class CodeGeneration {
 
+    private static ArrayList<SymbolForTable> symbolTable = new ArrayList<SymbolForTable>();
 
 
-    public void generateCode(SyntaxNode root){
 
+    public void generateCode(SyntaxNode root, ArrayList<SymbolForTable> symbolTable){
+
+        System.out.println();
+        SymbolForTable symbol;
+        for(int x = 0; x < symbolTable.size(); x++){
+            symbol = symbolTable.get(x);
+            symbol.displaySymbol();
+        }
     }
     
 }
@@ -46,6 +57,7 @@ public class CodeGeneration {
 //   …where module-name is replaced with the name of your module file (without the .mod extension). Any
 //   compilation errors should also be reported to the Terminal, along with a message that informs the user that the
 //   compilation failed.
+
 
 
 //--------------------------------------------------------------------------------------------------------------------------
