@@ -101,6 +101,8 @@ public class NonTerminalMethods {
             symbolTable.put("real", new ArrayList<SymbolForTable>());
             symbolTable.put("boolean", new ArrayList<SymbolForTable>());
             symbolTable.put("function", new ArrayList<SymbolForTable>());
+            symbolTable.put("struct", new ArrayList<SymbolForTable>());
+            symbolTable.put("array", new ArrayList<SymbolForTable>());
         }
 
         private static void setSymbolInfo(){
@@ -119,7 +121,7 @@ public class NonTerminalMethods {
                 temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "real", tokenLexeme);
             }
             else if(tokenType.equals("TFUNC")){
-                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "func", tokenLexeme, null);
+                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "function", tokenLexeme, null);
             }
             else{
                 temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "boolean", tokenLexeme);
@@ -446,9 +448,7 @@ public class NonTerminalMethods {
         }else{
             Token ident = declPrefix();
             if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
-                match("TIDEN");
                 paramNode = new SyntaxNode("NARRP", currentToken.getLexeme(), currentToken.getTokenEnumString());
-                declPrefix();
                 SyntaxNode temp = arrdecl(ident);
                 createChild(paramNode, temp);
             }else{
@@ -482,6 +482,7 @@ public class NonTerminalMethods {
     private SyntaxNode dlist(SyntaxNode parent){
         SyntaxNode declNode = decl();
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
+            match("TCOMA");
             SyntaxNode dlistNode = new SyntaxNode("NDLIST", currentToken.getLexeme(), currentToken.getTokenEnumString());
             createChild(dlistNode, declNode);
             createChild(parent.getListLastNode(parent, "NDLIST"), dlistNode);
@@ -510,7 +511,6 @@ public class NonTerminalMethods {
         lookAheadToken.getTokenEnumString().equals("TREAL") ||
         lookAheadToken.getTokenEnumString().equals("TBOOL")){
             updateTokens();
-            setSymbolInfo();
             createSymbolForTable(currentToken.getTokenEnumString());
         }else{
             System.out.println("Error: Expected an integer, real or boolean in line: " + currentToken.getLineNumber());
@@ -702,6 +702,7 @@ public class NonTerminalMethods {
             case "TSTEQ":
                 match("TSTEQ");
                 temp = new SyntaxNode("NSTEQ", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            break;
 
             case "TDVEQ":
                 match("TDVEQ");
@@ -770,6 +771,7 @@ public class NonTerminalMethods {
             retNode = expr(retNode);
             // STORE THIS RETURN TYPE IN THE SYMBOL TABLE
         }else{
+            match("TVOID");
             // STORE VOID RETURN TYPE IN THE SYMBOL TABLE
         }
         createChild(parent, retNode);
@@ -794,7 +796,6 @@ public class NonTerminalMethods {
 
     private SyntaxNode var(){
         SyntaxNode varNode = new SyntaxNode("NSIMV", currentToken.getLexeme(), currentToken.getTokenEnumString());
-        // match("TIDEN");
         if (lookAheadToken.getTokenEnumString().equals("TLBRK")){
             match("TLBRK");
             SyntaxNode temp = new SyntaxNode("NUNDF", null, null);
@@ -881,7 +882,7 @@ public class NonTerminalMethods {
             lookAheadToken.getTokenEnumString().equals("TNEQL") ||
             lookAheadToken.getTokenEnumString().equals("TGRTR") ||
             lookAheadToken.getTokenEnumString().equals("TLESS") ||
-            lookAheadToken.getTokenEnumString().equals("TLEQ") ||
+            lookAheadToken.getTokenEnumString().equals("TLEQL") ||
             lookAheadToken.getTokenEnumString().equals("TGEQL")){
                 isBool = true;
                 SyntaxNode relopNode = optRel();
@@ -918,8 +919,8 @@ public class NonTerminalMethods {
                 optRelNode = new SyntaxNode("NLSS", currentToken.getLexeme(), currentToken.getTokenEnumString());
             break;
 
-            case "TLEQ":
-                match("TLEQ");
+            case "TLEQL":
+                match("TLEQL");
                 optRelNode = new SyntaxNode("NLEQ", currentToken.getLexeme(), currentToken.getTokenEnumString());
             break;
 

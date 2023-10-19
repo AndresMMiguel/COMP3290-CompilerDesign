@@ -29,8 +29,8 @@ import java.util.Stack;
 //  hashMap.keySet()
 
 public class A2 {
-    private static CD23Scanner scanner = new CD23Scanner();
-    private static String[] scannerArgs = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/TestPrograms/Fibonacci.cd"};
+    private static A1 scanner = new A1();
+    private static String[] scannerArgs = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/TestPrograms/WithFunctions.cd"};
     private static ArrayList<Token> tokenList;
     private static NonTerminalMethods nonTerminalMethods = new NonTerminalMethods();
     private static SyntaxNode root;
