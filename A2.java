@@ -30,7 +30,7 @@ import java.util.Stack;
 
 public class A2 {
     private static A1 scanner = new A1();
-    private static String[] scannerArgs = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/TestPrograms/WithArrays.cd"};
+    private static String[] scannerArgs = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/TestPrograms/CompleteProgram.cd"};
     private static ArrayList<Token> tokenList;
     private static NonTerminalMethods nonTerminalMethods = new NonTerminalMethods();
     private static SyntaxNode root;
