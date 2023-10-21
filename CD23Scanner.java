@@ -332,7 +332,7 @@ public class CD23Scanner {
         }
 
         tokenList.add(token.returnTEOF(line, column));
-        // printTokens();
+        printTokens();
         return tokenList;
     }
 

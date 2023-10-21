@@ -10,9 +10,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-import java.util.HashMap;
 import java.util.Stack;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 //Hashmap methods
 //  hashMap.put(key, object)
@@ -25,7 +25,7 @@ public class NonTerminalMethods {
     private static Token currentToken;
     private static Token lookAheadToken;
     private static Stack<Token> tokenStack = new Stack<Token>();
-    private static HashMap<String, ArrayList<SymbolForTable>> symbolTable = new HashMap<>();
+    private static HashMap<String, SymbolTableRecord> symbolTable = new HashMap<String, SymbolTableRecord>();
     private static SyntaxNode root;
     private static Boolean isBool = false;
     private static String tokenLexeme;
@@ -51,16 +51,13 @@ public class NonTerminalMethods {
 
         //updates current token if condition satisfied
         private static void match(String token){
-            if (lookAheadToken.getTokenEnumString().equals(token))
-            {
+            if (lookAheadToken.getTokenEnumString().equals(token)){
                 updateTokens();
             }
-            else
-            {
+            else{
                 System.out.println("Error: Expected token " + token + " in line: " + currentToken.getLineNumber());
                 //Call to error function
             }
-        
         }
 
         // creates node child in the vacant position
@@ -77,60 +74,14 @@ public class NonTerminalMethods {
             }
         }
 
-        // private static void burnTokens(){
-        //     boolean keepBurning = true;
-        //     while(keepBurning == true){
-        //         updateTokens();
-        //         if(lookAheadToken.getTokenEnumString().equals("TBEGN")){
-        //             keepBurning = false;
-        //         }
-        //         if(lookAheadToken.getTokenEnumString().equals("TSEMI")){
-        //             keepBurning = false;
-        //         }
-        //         if(lookAheadToken.getTokenEnumString().equals("TMAIN")){
-        //             keepBurning = false;
-        //         }
-        //         if(lookAheadToken.getTokenEnumString().equals("TFUNC")){
-        //             keepBurning = false;
-        //         }
-        //     }
-        // }
-
-        private static void createBaseSymbolTable(){
-            symbolTable.put("integer", new ArrayList<SymbolForTable>());
-            symbolTable.put("real", new ArrayList<SymbolForTable>());
-            symbolTable.put("boolean", new ArrayList<SymbolForTable>());
-            symbolTable.put("function", new ArrayList<SymbolForTable>());
-            symbolTable.put("struct", new ArrayList<SymbolForTable>());
-            symbolTable.put("array", new ArrayList<SymbolForTable>());
-        }
-
         private static void setSymbolInfo(){
             tokenLexeme = currentToken.getLexeme();
             lineNumber = currentToken.getLineNumber();
             colNumber = currentToken.getColumnNumber();
         }
 
-        private static void createSymbolForTable(String tokenType){
-            SymbolForTable temp;
-            setSymbolInfo();
-            if(tokenType.equals("TINTG")){
-                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "integer", tokenLexeme);
-            }
-            else if(tokenType.equals("TREAL")){
-                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "real", tokenLexeme);
-            }
-            else if(tokenType.equals("TFUNC")){
-                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "function", tokenLexeme, null);
-            }
-            else{
-                temp = new SymbolForTable(tokenLexeme, lineNumber, colNumber, "boolean", tokenLexeme);
-            }
-            symbolTable.get(temp.getType()).add(temp);
-        }
     
         public SyntaxNode superMethod (){
-            createBaseSymbolTable();
             nprog();
             return root;
         }
@@ -141,6 +92,12 @@ public class NonTerminalMethods {
         root = new SyntaxNode("NUNDF", null, null);
             match("TCD23");
             match("TIDEN");
+            // CREATE NEW INPUT IN THE SYMBOL TABLE
+            setSymbolInfo();
+            Symbol symbol = new Symbol(tokenLexeme, lineNumber, colNumber,"PROGRAMNAME");
+            SymbolTableRecord STR = new SymbolTableRecord(symbol);
+            symbolTable.put(tokenLexeme, STR);
+            // Continue the program
             root = new SyntaxNode("NPROG", currentToken.getLexeme(), currentToken.getTokenEnumString());
             root = globals(root);
             root = funcs(root);
@@ -187,9 +144,19 @@ public class NonTerminalMethods {
     //NINIT <init> ::= <id> is <expr>
     private SyntaxNode init(){
         match("TIDEN");
+        // Create a new entry in the symbol table for this constant
+        setSymbolInfo();
+        // symbolTable.put(tokenLexeme, new SymbolForTable(tokenLexeme, lineNumber, colNumber, tokenLexeme));
         SyntaxNode initNode = new SyntaxNode("NINIT", currentToken.getLexeme(), currentToken.getTokenEnumString());
         match("TTTIS");
         initNode = const_lit(initNode);
+        if(initNode.getNodeValue().equals("NILIT")){
+            // symbolTable.get(tokenLexeme).setType("integer");
+        }else if(initNode.getNodeValue().equals("NFLIT")){
+            // symbolTable.get(tokenLexeme).setType("real");
+        }else{
+            // symbolTable.get(tokenLexeme).setType("boolean");
+        }
         return initNode;
     }
 
@@ -309,18 +276,25 @@ public class NonTerminalMethods {
         SyntaxNode typeNode = new SyntaxNode("NUNDF", null, null);
         if (lookAheadToken.getTokenEnumString().equals("TIDEN")){
             match("TIDEN");
+            setSymbolInfo();
             match("TTTIS");
             if (lookAheadToken.getTokenEnumString().equals("TARAY")){
+                // SYMBOL TABLE ENTRY
+                // symbolTable.put(tokenLexeme, new SymbolForTable(tokenLexeme, lineNumber, colNumber, "array", tokenLexeme));
                 match("TARAY");
                 typeNode = new SyntaxNode("NATYPE", currentToken.getLexeme(), currentToken.getTokenEnumString());
                 match("TLBRK");
+                // STORE LENGHT IN SYMBOL TABLE ENTRY
                 typeNode = expr(typeNode);
                 match("TRBRK");
                 match("TTTOF");
+                // STORE STRUCTID OF THE ARRAY IN SYMBOL TABLE ENTRY
                 match("TIDEN");
                 match("TTEND");
             }else{
                 typeNode = new SyntaxNode("NRTYPE", currentToken.getLexeme(), currentToken.getTokenEnumString());
+                // symbolTable.put(tokenLexeme, new SymbolForTable(tokenLexeme, lineNumber, colNumber, "struct", tokenLexeme));
+                // STORE FIELDS OF THE STRUCT IN THE SYMBOL TABLE ENTRY
                 typeNode = fields(typeNode);
                 match("TTEND");
             }
@@ -349,7 +323,6 @@ public class NonTerminalMethods {
         Token ident = currentToken;
         match("TCOLN");
         // STORE THIS IDENTIFIERS IN THE SYMBOL TABLE
-        createSymbolForTable(ident.getTokenEnumString());
         return ident;
     }
 
@@ -389,12 +362,16 @@ public class NonTerminalMethods {
         match("TFUNC");
         match("TIDEN");
         // STORE THIS FUNCTION IDENTIFIER IN THE SYMBOL TABLE
-        createSymbolForTable(currentToken.getTokenEnumString());
+        setSymbolInfo();
+        // symbolTable.put(tokenLexeme, new SymbolForTable(tokenLexeme, lineNumber, colNumber, "function", tokenLexeme));
         SyntaxNode funcNode = new SyntaxNode("NFUND", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        String paramsTableKey = tokenLexeme + "Params";
         match("TLPAR");
-        funcNode = plist(funcNode);
+        // STORE THE PARAMETERS IN THE SYMBOL TABLE ENTRY OF THE FUNCTION
+        funcNode = plist(funcNode, paramsTableKey);
         match("TRPAR");
         match("TCOLN");
+        // STORE THE RETURN TYPE IN THE SYMBOL TABLE ENTRY OF THE FUNCTION
         rtype();
         funcNode = funcbody(funcNode);
         return funcNode;
@@ -411,24 +388,24 @@ public class NonTerminalMethods {
     }
 
     //Special <plist> ::= <params> | ε
-    private SyntaxNode plist(SyntaxNode parent){
+    private SyntaxNode plist(SyntaxNode parent, String functionid){
         if (lookAheadToken.getTokenEnumString().equals("TIDEN") ||
         lookAheadToken.getTokenEnumString().equals("TCNST")){
-            parent = params(parent);
+            parent = params(parent, functionid);
         }
         return parent;
     }
 
     //NPLIST <params> ::= <param> , <params>
     //Special <params> ::= <param>
-    private SyntaxNode params(SyntaxNode parent){
-        SyntaxNode paramNode = param();
+    private SyntaxNode params(SyntaxNode parent, String functionid){
+        SyntaxNode paramNode = param(functionid);
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
             match("TCOMA");
             SyntaxNode temp = new SyntaxNode("NPLIST", currentToken.getLexeme(), currentToken.getTokenEnumString());
             createChild(temp, paramNode);
             createChild(parent.getListLastNode(parent, "NPLIST"), temp);
-            params(parent);
+            params(parent,functionid);
         }else{
             createChild(parent.getListLastNode(parent, "NPLIST"), paramNode);
         }
@@ -438,7 +415,7 @@ public class NonTerminalMethods {
     //NSIMP <param> ::= <sdecl>
     //NARRP <param> ::= <arrdecl>
     //NARRC <param> ::= const <arrdecl>
-    private SyntaxNode param(){
+    private SyntaxNode param(String functionid){
         SyntaxNode paramNode;
         if (lookAheadToken.getTokenEnumString().equals("TCNST")){       //NARRC <param> ::= const <arrdecl>
             match("TCNST");
@@ -511,7 +488,6 @@ public class NonTerminalMethods {
         lookAheadToken.getTokenEnumString().equals("TREAL") ||
         lookAheadToken.getTokenEnumString().equals("TBOOL")){
             updateTokens();
-            createSymbolForTable(currentToken.getTokenEnumString());
         }else{
             System.out.println("Error: Expected an integer, real or boolean in line: " + currentToken.getLineNumber());
         }
@@ -598,7 +574,7 @@ public class NonTerminalMethods {
         match("TSEMI");
         createChild(forNode, bool());
         match("TRPAR");
-        forNode = stat(forNode);
+        forNode = stats(forNode);
         match("TTEND");
         createChild(parent, forNode);
         return parent;
@@ -1103,66 +1079,3 @@ public class NonTerminalMethods {
 
 
 }
-
-
-
-/*
-Writing a Recursive Descent parser:
-
-
- *  void A() {
-1)      Choose an A-production, A → X1 X2 . . . Xk ;
-2)      for ( i = 1 to k ) {
-3)          if ( Xi is a nonterminal )
-4)              call procedure Xi () ;
-5)          else if ( Xi equals the current input symbol a )
-6)              advance the input to the next symbol;
-7)          else /* an error has occurred * / ;
-        }
-    }
-------------------------------------------------------------------------
-Use next token (lookahead) to choose (PREDICT) which production to
-‘mimic’.
-
-• Ex: B → b C D
-
-    B() {
-        if (lookahead == ‘b’)
-        { match(‘b’); C(); D(); }
-        else ...
-    }
-------------------------------------------------------------------------
-Also need the following:
-    match(symbol) {
-        if (symbol == lookahead)
-            lookahead = nexttoken()
-        else error() }
-
-    main() {
-        lookahead = nextoken();
-        S();    /// S is the start symbol 
-        if (lookahead == EOF) then accept
-        else reject
-        }
-    error() { ...
-        }
-
-------------------------------------------------------------------------
-    S() {
-        if (lookahead == a ) { match(a);B(); } S → a B
-        else if (lookahead == b) { match(b); C(); } S → b C
-        else error("expecting a or b");
-    }
-
-    B() {
-        if (lookahead == b)
-        {match(b); match(b); C();} B → b b C
-        else error();
-    }
-
-    C() {
-        if (lookahead == c)
-        { match(c) ; match(c) ;} C → c c
-        else error();
-    }
- */
