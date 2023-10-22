@@ -14,29 +14,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Stack;
 
-//Hashmap methods
-//  hashMap.put(key, object)
-//  SymbolForTable currentSymbolInfo = hashMap.get(key)
-//  hashMap.remove(key)
-//  boolean containsKey = hashMap.containsKey(key)
-//  hashMap.keySet()
-
-//Hashmap methods
-//  hashMap.put(key, object)
-//  SymbolForTable currentSymbolInfo = hashMap.get(key)
-//  hashMap.remove(key)
-//  boolean containsKey = hashMap.containsKey(key)
-//  hashMap.keySet()
 
 public class A2 {
     private static A1 scanner = new A1();
-    private static String[] scannerArgs = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/TestPrograms/CompleteProgram.cd"};
+    private static String[] path = {"C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment2/TestPrograms/Fibonacci.cd"};
     private static ArrayList<Token> tokenList;
     private static NonTerminalMethods nonTerminalMethods = new NonTerminalMethods();
     private static SyntaxNode root;
     private static Stack<SyntaxNode> nodeStack = new Stack<SyntaxNode>();
     private static Integer column = 0;
-    // private static Map<String, SymbolForTable> symbolTable = new HashMap<>();
 
     private static void printNodes (SyntaxNode root){
         nodeStack.push(root);
@@ -97,8 +83,20 @@ public class A2 {
 
     public static void main (String[] args) throws IOException{
         if (args.length > 0)
-            scannerArgs = args;
-        tokenList = scanner.main(scannerArgs);
+            path = args;
+
+        // Scanner
+        scanner.main(path);
+        tokenList = scanner.getTokenList();
+        ArrayList<String> lexErrors = scanner.getLexErrors();
+        if (lexErrors.size()>0){
+            for(String error : lexErrors){
+                System.out.println(error);                
+            }
+            System.exit(0);
+        }
+
+        // Parser
         nonTerminalMethods.transferTokensToStack(tokenList);
         root = nonTerminalMethods.superMethod();
         System.out.println();

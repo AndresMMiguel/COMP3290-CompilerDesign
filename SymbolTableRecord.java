@@ -38,6 +38,7 @@ public class SymbolTableRecord {
     public SymbolTableRecord(Symbol symbol){
         this.type = getEnum(symbol);
         this.symbol = symbol;
+        this.isConstant = false;
     }
     
     private static Type getEnum(Symbol symbol){
