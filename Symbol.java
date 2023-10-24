@@ -19,7 +19,7 @@ public class Symbol {
     private String type;
     private Integer base;
     private Integer offset;
-    private String glyph;
+    private String value;
 
 /* simple symbol table example
 
@@ -53,7 +53,7 @@ id:k         Line:4  Col:27 Type:integer   Base:   Offset:   GLypth:"k"
         this.type = null;
         this.base = null;
         this.offset = null;
-        this.glyph = null;
+        this.value = null;
     }
 
     public Symbol(String id, Integer line, Integer col){
@@ -63,7 +63,7 @@ id:k         Line:4  Col:27 Type:integer   Base:   Offset:   GLypth:"k"
         this.type = null;
         this.base = null;
         this.offset = null;
-        this.glyph = null;
+        this.value = null;
     }
 
     public Symbol(String id, Integer line, Integer col, String type){
@@ -73,7 +73,7 @@ id:k         Line:4  Col:27 Type:integer   Base:   Offset:   GLypth:"k"
         this.type = type;
         this.base = null;
         this.offset = null;
-        this.glyph = null; 
+        this.value = null; 
     }
 
 
@@ -95,8 +95,8 @@ id:k         Line:4  Col:27 Type:integer   Base:   Offset:   GLypth:"k"
     public Integer getOffset(){
         return offset;
     }
-    public String getGlyph(){
-        return glyph;
+    public String getValue(){
+        return value;
     }
     public void setId(String id){
         this.id = id;
@@ -107,8 +107,8 @@ id:k         Line:4  Col:27 Type:integer   Base:   Offset:   GLypth:"k"
     public void setColumn(Integer col){
         this.col = col;
     }
-    public void setGlyph(String glyph){
-        this.glyph = glyph;
+    public void setValue(String value){
+        this.value = value;
     }
     public void setType(String type){
         this.type = type;

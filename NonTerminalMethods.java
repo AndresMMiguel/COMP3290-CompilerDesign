@@ -11,15 +11,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import java.util.Stack;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-//Hashmap methods
-//  hashMap.put(key, object)
-//  SymbolForTable currentSymbolInfo = hashMap.get(key)
-//  hashMap.remove(key)
-//  boolean containsKey = hashMap.containsKey(key)
-//  hashMap.keySet()
 
 public class NonTerminalMethods {
     private static Token currentToken;
@@ -31,7 +27,18 @@ public class NonTerminalMethods {
     private static String tokenLexeme;
     private static Integer lineNumber;
     private static Integer colNumber;
+    private ArrayList<String> semanticErrors = new ArrayList<String>();
+    private ArrayList<String> syntaxErrors = new ArrayList<String>();
+    private static String varType;
+    private static boolean returnNeeded;
+    private  String filePath = "";
 
+    public ArrayList<String> getSyntaxErrors(){
+        return this.syntaxErrors;
+    }
+    public ArrayList<String> getSemanticErrors(){
+        return this.semanticErrors;
+    }
 
     public void transferTokensToStack(ArrayList<Token> tokenList){
         int arrayLength = tokenList.size();
@@ -49,14 +56,27 @@ public class NonTerminalMethods {
             lookAheadToken = tokenStack.peek();
         }
 
+        private void error(String err_message){
+            try{
+                FileWriter file = new FileWriter(filePath);
+                PrintWriter pw = new PrintWriter(file);
+                pw.println(err_message);
+                file.close();
+                System.exit(0);
+            }catch(Exception e){
+                System.out.println("Couldn't write the listing file in the compiler path");
+            }
+        }
         //updates current token if condition satisfied
-        private static void match(String token){
+        private void match(String token){
             if (lookAheadToken.getTokenEnumString().equals(token)){
                 updateTokens();
             }
             else{
-                System.out.println("Error: Expected token " + token + " in line: " + currentToken.getLineNumber());
-                error();
+                String err_message = "Syntax error: Expected token " + token + " in line: " + currentToken.getLineNumber();
+                System.out.println(err_message);
+                syntaxErrors.add(err_message);
+                error(err_message);
             }
         }
 
@@ -81,9 +101,6 @@ public class NonTerminalMethods {
         //     }
         // }
 
-        private static void error(){
-            System.exit(0);
-        }
 
         // creates node child in the vacant position
         private static void createChild (SyntaxNode parent, SyntaxNode child){
@@ -106,7 +123,8 @@ public class NonTerminalMethods {
         }
 
     
-        public SyntaxNode superMethod (){
+        public SyntaxNode superMethod(String filePath){
+            this.filePath = filePath;
             nprog();
             return root;
         }
@@ -190,6 +208,7 @@ public class NonTerminalMethods {
                 symbol.setType("BOOLEAN");
             break;
         }
+        symbol.setValue(currentToken.getLexeme());
         SymbolTableRecord STR = new SymbolTableRecord(symbol);
         STR.setConstant(true);
         STR.setScope("global");
@@ -225,8 +244,10 @@ public class NonTerminalMethods {
             break;
 
             default:
-                System.out.println("Error: Expected integer, real or boolean in line " + currentToken.getLineNumber());
-                error();
+                String err_message = "Syntax error: Expected integer, real or boolean in line " + currentToken.getLineNumber();
+                System.out.println(err_message);
+                syntaxErrors.add(err_message);
+                error(err_message);
             break;
         }
         return parent;
@@ -275,26 +296,25 @@ public class NonTerminalMethods {
         match("TTEND");
         match("TCD23");
         match("TIDEN");
+        try{
+            if (!symbolTable.get(currentToken.getLexeme()).getSymbol().getid().equals(currentToken.getLexeme())){
+                String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+                ", column " + currentToken.getColumnNumber() +
+                " - the program name at the beggining and at the end must match";
+                semanticErrors.add(err_message);
+            }
+        }catch(Exception e){
+            String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+            ", column " + currentToken.getColumnNumber() +
+            " - the program name at the beggining and at the end must match";
+            semanticErrors.add(err_message);
+        }
         createChild(parent, mainNode);
         return parent;
     }
 
     //NSDLST <slist> ::= <sdecl> , <slist>
     //Special <slist> ::= <sdecl>
-    // private SyntaxNode slist(SyntaxNode parent){
-    //     SyntaxNode sdeclNode = sdecl(declPrefix());
-    //     if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
-    //         match("TCOMA");
-    //         SyntaxNode sdlistNode = new SyntaxNode("NSDLST", currentToken.getLexeme(), currentToken.getTokenEnumString());
-    //         createChild(sdlistNode, sdeclNode);
-    //         createChild(parent.getListLastNode(parent, "NSDLST"), sdlistNode);
-    //         slist(parent);
-    //     }else{
-    //         createChild(parent.getListLastNode(parent, "NSDLST"), sdeclNode);
-    //     }
-    //     return parent;
-    // }
-
     private SyntaxNode slist(SyntaxNode parent){
         if (!lookAheadToken.getTokenEnumString().equals("TBEGN")){
             declPrefix();
@@ -327,8 +347,10 @@ public class NonTerminalMethods {
             }
         }else if (parent.getListLastNode(parent, "NSDLST") == parent ||
         currentToken.getTokenEnumString().equals("TCOMA")){
-            System.out.println("Error: It should be declarations in line " + lookAheadToken.getLineNumber());
-            error();
+            String err_message = "Syntax error: It should be declarations in line " + lookAheadToken.getLineNumber();
+            System.out.println(err_message);
+            syntaxErrors.add(err_message);
+            error(err_message);
         }
         
         return parent;
@@ -364,6 +386,33 @@ public class NonTerminalMethods {
                 match("TLBRK");
                 // STORE LENGHT IN SYMBOL TABLE ENTRY (How? If it is an expression like 1+3?)
                 typeNode = expr(typeNode);
+                switch(typeNode.getLeft().getNodeValue()){
+                    case "NILIT":
+                        STR.setArrayLenght(Integer.parseInt(typeNode.getLeft().getSymbolValue()));
+                    break;
+
+                    case "NSIMV":
+                        try{
+                            if(!symbolTable.get(typeNode.getLeft().getSymbolValue()).isConstant() ||
+                            !symbolTable.get(typeNode.getLeft().getSymbolValue()).getSymbol().getType().equals("INTEGER")){
+                                String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+                                ", column " + currentToken.getColumnNumber() +
+                                " - the length of the array must be known at compile time, so it should be an integer or a constant";
+                                semanticErrors.add(err_message);
+                            }else{
+                                STR.setArrayLenght(Integer.parseInt(symbolTable.get(typeNode.getLeft().getSymbolValue()).getSymbol().getValue()));
+                            }
+                        }catch(Exception e){
+                        }
+                    break;
+
+                    default:
+                        String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+                        ", column " + currentToken.getColumnNumber() +
+                        " - the length of the array must be known at compile time, so it should be an integer or a constant";
+                        semanticErrors.add(err_message);
+                    break;
+                }
                 match("TRBRK");
                 match("TTTOF");
                 // STORE STRUCTID OF THE ARRAY IN SYMBOL TABLE ENTRY
@@ -372,14 +421,18 @@ public class NonTerminalMethods {
                     if (symbolTable.get(currentToken.getLexeme()).getSymbol().getid().equals(currentToken.getLexeme())){
                         STR.setStructId(currentToken.getLexeme());
                     }else{
-                        System.out.println("Error: the type of the array should be declared previously");
-                        error();
+                        String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+                        ", column " + currentToken.getColumnNumber() +
+                        " - the type of the array elements should be declared previously";
+                        semanticErrors.add(err_message);
                     }
                 }catch(Exception e){
-                    System.out.println("Error: the type of the array should be declared previously");
-                    error();
+                    String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+                        ", column " + currentToken.getColumnNumber() +
+                        " - the type of the array elements should be declared previously";
+                        semanticErrors.add(err_message);
                 }
-                symbolTable.put(tokenLexeme, STR);
+                symbolTable.put(symbol.getid(), STR);
                 match("TTEND");
             }else{
                 typeNode = new SyntaxNode("NRTYPE", currentToken.getLexeme(), currentToken.getTokenEnumString());
@@ -455,10 +508,26 @@ public class NonTerminalMethods {
         Symbol symbol = new Symbol(tokenLexeme, lineNumber, colNumber, "ARRAY");
         SymbolTableRecord STR = new SymbolTableRecord(symbol);
         SyntaxNode declNode = arrdecl();
-        // Store array type in the STR
-        STR.setStructId(tokenLexeme);
+        // Check if array type already declared
+        try{
+            if(symbolTable.get(tokenLexeme).getType().equals("ARRAYDEF")){
+                symbol.setType(tokenLexeme);
+            }else{
+                String err_message = "Semantic Error: line " + currentToken.getLineNumber() +
+                ", column " + currentToken.getColumnNumber() +
+                " - the array type of the parameter '" + symbol.getid() + "' should be declared previously";
+                semanticErrors.add(err_message);
+            }
+        }catch(Exception e){
+                String err_message = "Semantic Error: line " + currentToken.getLineNumber() +
+                ", column " + currentToken.getColumnNumber() +
+                " - the array type of the parameter '" + symbol.getid() + "' should be declared previously";
+                semanticErrors.add(err_message);
+        }
+        
+        // Store symbol in the symbol table
         symbolTable.put(symbol.getid(), STR);
-        SyntaxNode listNode = new SyntaxNode("NALIST", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        SyntaxNode listNode = new SyntaxNode("NALIST", "", "");
         createChild(listNode, declNode);
         createChild(parent.getListLastNode(parent, "NALIST"), listNode);
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")||
@@ -474,7 +543,6 @@ public class NonTerminalMethods {
     private SyntaxNode arrdecl(){
         match("TIDEN");
         SyntaxNode temp = new SyntaxNode("NARRD", tokenLexeme, "");
-        // STORE THIS ARRAY TYPE IN THE SYMBOL TABLE
         setSymbolInfo();
         return temp;
     }
@@ -488,12 +556,25 @@ public class NonTerminalMethods {
         String functionid = tokenLexeme;
         Symbol symbol = new Symbol(tokenLexeme, lineNumber, colNumber, "FUNCTION");
         SymbolTableRecord STR = new SymbolTableRecord(symbol);
+        symbolTable.put(functionid, STR);
         SyntaxNode funcNode = new SyntaxNode("NFUND", currentToken.getLexeme(), currentToken.getTokenEnumString());
         match("TLPAR");
         // STORE THE PARAMETERS IN THE SYMBOL TABLE ENTRY OF THE FUNCTION
         funcNode = plist(funcNode, functionid);
         match("TRPAR");
         match("TCOLN");
+        // Semantic error: missing return type
+        if(lookAheadToken.getTokenEnumString().equals("TIDEN") ||
+        lookAheadToken.getTokenEnumString().equals("TMAIN") ||
+        lookAheadToken.getTokenEnumString().equals("TBEGN") ||
+        lookAheadToken.getTokenEnumString().equals("TTEND")){
+            String err_message = "Syntax error: line " + currentToken.getLineNumber() + 
+            ", column " + currentToken.getColumnNumber() +
+            " - the function " + functionid + " should have a return type";
+            System.out.println(err_message);
+            syntaxErrors.add(err_message);
+            error(err_message);
+        }
         // STORE THE RETURN TYPE IN THE SYMBOL TABLE ENTRY OF THE FUNCTION
         rtype();
         switch(currentToken.getTokenEnumString()){
@@ -531,30 +612,32 @@ public class NonTerminalMethods {
     private SyntaxNode plist(SyntaxNode parent, String functionid){
         if (lookAheadToken.getTokenEnumString().equals("TIDEN") ||
         lookAheadToken.getTokenEnumString().equals("TCNST")){
-            parent = params(parent, functionid);
+            parent = params(parent, functionid, 0);
         }
         return parent;
     }
 
     //NPLIST <params> ::= <param> , <params>
     //Special <params> ::= <param>
-    private SyntaxNode params(SyntaxNode parent, String functionid){
-        SyntaxNode paramNode = param(functionid);
+    private SyntaxNode params(SyntaxNode parent, String functionid, Integer paramPosition){
+        SyntaxNode paramNode = param(functionid, paramPosition);
         SyntaxNode paramListNode = new SyntaxNode("NPLIST","", "");
-            createChild(paramListNode, paramNode);
-            createChild(parent.getListLastNode(parent, "NPLIST"), paramListNode);
+        createChild(paramListNode, paramNode);
+        createChild(parent.getListLastNode(parent, "NPLIST"), paramListNode);
+        symbolTable.get(functionid).setNumParams(paramPosition + 1);
         if (lookAheadToken.getTokenEnumString().equals("TCOMA") ||
         !lookAheadToken.getTokenEnumString().equals("TRPAR")){
             match("TCOMA");
-            params(parent,functionid);
-        }
+            paramPosition++;
+            params(parent,functionid, paramPosition);
+        }        
         return parent;
     }
 
     //NSIMP <param> ::= <sdecl>
     //NARRP <param> ::= <arrdecl>
     //NARRC <param> ::= const <arrdecl>
-    private SyntaxNode param(String functionid){
+    private SyntaxNode param(String functionid, Integer paramPosition){
         SyntaxNode paramNode;
         if (lookAheadToken.getTokenEnumString().equals("TCNST")){       //NARRC <param> ::= const <arrdecl>
             match("TCNST");
@@ -563,12 +646,22 @@ public class NonTerminalMethods {
             // Create symbol
             Symbol symbol = new Symbol(tokenLexeme, lineNumber, colNumber);
             SyntaxNode temp = arrdecl();
-            symbol.setType(tokenLexeme);
-            SymbolTableRecord STR = new SymbolTableRecord(symbol);
-            STR.setFunctionId(functionid);
-            STR.setType("PARAMETER");
-            STR.setConstant(true);
-            symbolTable.put(symbol.getid(), STR);
+            try{
+                if(symbolTable.get(tokenLexeme).getSymbol().getid().equals(tokenLexeme)){
+                    symbol.setType(tokenLexeme);
+                    SymbolTableRecord STR = new SymbolTableRecord(symbol);
+                    STR.setFunctionId(functionid);
+                    STR.setType("PARAMETER");
+                    STR.setParamPosition(paramPosition);
+                    STR.setConstant(true);
+                    symbolTable.put(symbol.getid(), STR);
+                }
+            }catch(Exception e){
+                String err_message = "Semantic Error: line " + currentToken.getLineNumber() +
+                ", column " + currentToken.getColumnNumber() +
+                " - the array type of the parameter '" + symbol.getid() + "' should be declared previously";
+                semanticErrors.add(err_message);
+            }
             createChild(paramNode, temp);
         }else{
             declPrefix();
@@ -578,11 +671,27 @@ public class NonTerminalMethods {
                 paramNode = new SyntaxNode("NARRP", currentToken.getLexeme(), currentToken.getTokenEnumString());
                 SyntaxNode temp = arrdecl();
                 // STORE PARAMETER IN THE SYMBOL TABLE
-                symbol.setType(tokenLexeme);
-                SymbolTableRecord STR = new SymbolTableRecord(symbol);
-                STR.setFunctionId(functionid);
-                STR.setType("PARAMETER");
-                symbolTable.put(symbol.getid(), STR);
+                try{
+                    if(symbolTable.get(tokenLexeme).getSymbol().getid().equals(tokenLexeme)){
+                        symbol.setType(tokenLexeme);
+                        SymbolTableRecord STR = new SymbolTableRecord(symbol);
+                        STR.setFunctionId(functionid);
+                        STR.setType("PARAMETER");
+                        STR.setParamPosition(paramPosition);
+                        symbolTable.put(symbol.getid(), STR);
+                    }else{
+                        String err_message = "Semantic Error: line " + currentToken.getLineNumber() +
+                        ", column " + currentToken.getColumnNumber() +
+                        " - the array type of the parameter '" + symbol.getid() + "' should be declared previously";
+                        semanticErrors.add(err_message);
+                    }
+                    
+                }catch(Exception e){
+                    String err_message = "Semantic Error: line " + currentToken.getLineNumber() +
+                    ", column " + currentToken.getColumnNumber() +
+                    " - the array type of the parameter '" + symbol.getid() + "' should be declared previously";
+                    semanticErrors.add(err_message);
+                }
                 createChild(paramNode, temp);
             }else{
                 paramNode = new SyntaxNode("NSIMP", currentToken.getLexeme(), currentToken.getTokenEnumString());
@@ -603,6 +712,7 @@ public class NonTerminalMethods {
                 SymbolTableRecord STR = new SymbolTableRecord(symbol);
                 STR.setFunctionId(functionid);
                 STR.setType("PARAMETER");
+                STR.setParamPosition(paramPosition);
                 symbolTable.put(symbol.getid(), STR);
                 createChild(paramNode, temp);
             }
@@ -614,7 +724,14 @@ public class NonTerminalMethods {
     private SyntaxNode funcbody (SyntaxNode parent, String functionid){
         parent = locals(parent, functionid);
         match("TBEGN");
-        parent = stats(parent); 
+        returnNeeded = true;
+        parent = stats(parent);
+        if (returnNeeded){
+            String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+            ", column " + currentToken.getColumnNumber() +
+            " - the function " + functionid + " should have at least one return statement";
+            semanticErrors.add(err_message);
+        }
         match("TTEND");
         return parent;
     }
@@ -683,8 +800,12 @@ public class NonTerminalMethods {
         lookAheadToken.getTokenEnumString().equals("TBOOL")){
             updateTokens();
         }else{
-            System.out.println("Error: Expected an integer, real or boolean in line: " + currentToken.getLineNumber());
-            error();
+            String err_message = "Syntax error: line " + currentToken.getLineNumber() + 
+            ", column " + currentToken.getColumnNumber() +
+            " - expected an integer, real or boolean type";
+            System.out.println(err_message);
+            syntaxErrors.add(err_message);
+            error(err_message);
         }
     }
 
@@ -706,8 +827,12 @@ public class NonTerminalMethods {
             createChild(parent.getListLastNode(parent, "NSTATS"), statsNode);
             stats(parent);
         }else if(parent.getListLastNode(parent, "NSTATS") == parent){
-            System.out.println("Error: It should be statements in line " + lookAheadToken.getLineNumber());
-            error();
+            String err_message = "Syntax error: line " + currentToken.getLineNumber() + 
+            ", column " + currentToken.getColumnNumber() +
+            " - It should be statements in line " + lookAheadToken.getLineNumber();
+            System.out.println(err_message);
+            syntaxErrors.add(err_message);
+            error(err_message);
         }
         return parent;
     }
@@ -731,6 +856,7 @@ public class NonTerminalMethods {
 
             case "TIDEN":
             match("TIDEN");
+            setSymbolInfo();
                 if (lookAheadToken.getTokenEnumString().equals("TLPAR")){   //Special <stat> ::= <callstat>
                     parent = callstat(parent);
                 }else{      //Special <stat> ::= <asgnstat>
@@ -839,6 +965,12 @@ public class NonTerminalMethods {
     //Special <asgnstat> ::= <var> <asgnop> <bool>
     private SyntaxNode asgnstat(){
         SyntaxNode varNode = var();
+        if (varType.equals("CONSTANT")){
+            String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+            ", column " + currentToken.getColumnNumber() +
+            " - the constant " + currentToken.getLexeme() + " cannot be changed";
+            semanticErrors.add(err_message);
+        }
         SyntaxNode asgnNode = asgnop();
         createChild(asgnNode, varNode);
         createChild(asgnNode, bool());
@@ -879,7 +1011,12 @@ public class NonTerminalMethods {
             break;
 
             default:
-            //Error
+                String err_message = "Syntax error: line " + currentToken.getLineNumber() + 
+                ", column " + currentToken.getColumnNumber() +
+                " - expected a valid assign operator";
+                System.out.println(err_message);
+                syntaxErrors.add(err_message);
+                error(err_message);
             break;
         }
         return temp;
@@ -923,10 +1060,30 @@ public class NonTerminalMethods {
     //NCALL <callstat> ::= <id> ( <elist> ) | <id> ()
     private SyntaxNode callstat(SyntaxNode parent){
         // Check if function exists, number of parameters and types of them
+        String functionid = tokenLexeme;
+        try{
+            if (!symbolTable.get(currentToken.getLexeme()).getSymbol().getid().equals(currentToken.getLexeme())){
+                String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+                ", column " + currentToken.getColumnNumber() +
+                " - the function " + tokenLexeme + " should be declared previously";
+                semanticErrors.add(err_message);
+            }
+        }catch(Exception e){
+            String err_message = "Semantic Error: line " + currentToken.getLineNumber() +
+            ", column " + currentToken.getColumnNumber() +
+            " - the function '" + tokenLexeme + "' should be declared previously";
+            semanticErrors.add(err_message);
+        }
         SyntaxNode callNode = new SyntaxNode("NCALL", currentToken.getLexeme(), currentToken.getTokenEnumString());
         match("TLPAR");
-        if (!lookAheadToken.getTokenEnumString().equals("TRPAR")){
-            callNode = elist(callNode);
+        Integer numParams = symbolTable.get(functionid).getNumParams();
+        if (!lookAheadToken.getTokenEnumString().equals("TRPAR")){            
+            callNode = elist(callNode, functionid, 0, numParams);
+        }else if(numParams > 0){
+            String err_message = "Semantic Error: line " + currentToken.getLineNumber() +
+            ", column " + currentToken.getColumnNumber() +
+            " - the function '" + functionid + "' should have " + numParams + " parameters";
+            semanticErrors.add(err_message);
         }
         match("TRPAR");
         createChild(parent, callNode);
@@ -935,6 +1092,7 @@ public class NonTerminalMethods {
 
     //NRETN <returnstat> ::= return void | return <expr>
     private SyntaxNode returnstat(SyntaxNode parent){
+        returnNeeded = false;
         match("TRETN");
         SyntaxNode retNode = new SyntaxNode("NRETN", currentToken.getLexeme(), currentToken.getTokenEnumString());
         if(!lookAheadToken.getTokenEnumString().equals("TVOID")){
@@ -952,7 +1110,7 @@ public class NonTerminalMethods {
     private SyntaxNode vlist(SyntaxNode parent){  
         match("TIDEN");      
         SyntaxNode temp = var();
-        SyntaxNode vlistNode = new SyntaxNode("NVLIST", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        SyntaxNode vlistNode = new SyntaxNode("NVLIST", "", "");
         createChild(vlistNode, temp);
         createChild(parent.getListLastNode(parent, "NVLIST"), vlistNode);
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")){
@@ -964,6 +1122,20 @@ public class NonTerminalMethods {
 
     private SyntaxNode var(){        
         SyntaxNode varNode = new SyntaxNode("NSIMV", currentToken.getLexeme(), currentToken.getTokenEnumString());
+        // Store variable type
+        try{
+            if(symbolTable.get(currentToken.getLexeme()).isConstant()){
+                varType = "CONSTANT";
+            }else{
+                varType = symbolTable.get(currentToken.getLexeme()).getType();
+            }
+        }catch(Exception e){
+            String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+            ", column " + currentToken.getColumnNumber() +
+            " - the variable '" + currentToken.getLexeme() + "' should be declared previously";
+            semanticErrors.add(err_message);
+        }
+
         if (lookAheadToken.getTokenEnumString().equals("TLBRK")){
             match("TLBRK");
             SyntaxNode temp = new SyntaxNode("NUNDF", null, null);
@@ -975,7 +1147,15 @@ public class NonTerminalMethods {
                 varNode =  new SyntaxNode("NARRV", currentToken.getLexeme(), currentToken.getTokenEnumString());
                 varNode.copyChildren(temp, varNode);
                 match("TIDEN");
-                // Check if field is already declared previously
+                // Check if field is already declared previously and store its type in the variable type
+                try{
+                    varType = symbolTable.get(currentToken.getLexeme()).getSymbol().getType();            
+                }catch(Exception e){
+                    String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+                    ", column " + currentToken.getColumnNumber() +
+                    " - the field '" + currentToken.getLexeme() + "' should be declared previously in the types section";
+                    semanticErrors.add(err_message);
+                }
             }else{
                 varNode = new SyntaxNode("NAELT", currentToken.getLexeme(), currentToken.getTokenEnumString());
                 varNode.copyChildren(temp, varNode);
@@ -985,15 +1165,23 @@ public class NonTerminalMethods {
     }
 
     //NEXPL <elist> ::= <bool> , <elist>
-    private SyntaxNode elist(SyntaxNode parent){
+    private SyntaxNode elist(SyntaxNode parent, String functionid, Integer paramPosition, Integer numParams){        
         SyntaxNode boolNode = bool();
         SyntaxNode temp = new SyntaxNode("NEXPL", currentToken.getLexeme(), currentToken.getTokenEnumString());
         createChild(temp, boolNode);
         createChild(parent.getListLastNode(parent, "NEXPL"), temp);
         if (lookAheadToken.getTokenEnumString().equals("TCOMA")||
         !lookAheadToken.getTokenEnumString().equals("TRPAR")){
-            match("TCOMA");            
-            elist(parent);
+            match("TCOMA");
+            paramPosition++;        
+            elist(parent, functionid, paramPosition, numParams);
+        }else{
+            if (paramPosition != numParams -1){
+                String err_message = "Semantic Error: line " + currentToken.getLineNumber() +
+                ", column " + currentToken.getColumnNumber() +
+                " - the function '" + functionid + "' should have " + numParams + " parameters";
+                semanticErrors.add(err_message);
+            }
         }
         return parent;
     }
@@ -1178,7 +1366,7 @@ public class NonTerminalMethods {
     //Special <fact> ::= <exponent>
     private SyntaxNode fact(SyntaxNode parent){
         SyntaxNode expNode = exponent();
-        if(lookAheadToken.getTokenEnumString().equals("^")){    //NPOW <fact> ::= <fact> ^ <exponent>
+        if(lookAheadToken.getTokenEnumString().equals("TCART")){    //NPOW <fact> ::= <fact> ^ <exponent>
             match("TCART");
             SyntaxNode powNode = new SyntaxNode("NPOW", currentToken.getLexeme(), currentToken.getTokenEnumString());
             createChild(powNode, expNode);
@@ -1195,6 +1383,7 @@ public class NonTerminalMethods {
         switch(lookAheadToken.getTokenEnumString()){
             case "TIDEN":   //Special <exponent> ::= <var> or Special <exponent> ::= <fncall>
                 match("TIDEN");
+                setSymbolInfo();
                 if (lookAheadToken.getTokenEnumString().equals("TLPAR")){
                     expNode = fncall();
                 }else{
@@ -1232,15 +1421,45 @@ public class NonTerminalMethods {
     }
 
     //NFCALL <fncall> ::= <id> (<elist>) | <id> ()
-    private SyntaxNode fncall(){
-        SyntaxNode fnNode = new SyntaxNode("NFCALL", currentToken.getLexeme(), currentToken.getTokenEnumString());
-        match("TLPAR");
-        if (!lookAheadToken.getTokenEnumString().equals("TRPAR")){
-            fnNode = elist(fnNode);
+    // private SyntaxNode fncall(){
+    //     SyntaxNode fnNode = new SyntaxNode("NFCALL", currentToken.getLexeme(), currentToken.getTokenEnumString());
+    //     match("TLPAR");
+    //     if (!lookAheadToken.getTokenEnumString().equals("TRPAR")){
+    //         fnNode = elist(fnNode);
+    //     }
+    //     match("TRPAR");
+    //     return fnNode;
+    // }
+        private SyntaxNode fncall(){
+            // Check if function exists, number of parameters and types of them
+            String functionid = tokenLexeme;
+            try{
+                if (!symbolTable.get(currentToken.getLexeme()).getSymbol().getid().equals(currentToken.getLexeme())){
+                    String err_message = "Semantic Error: line " + currentToken.getLineNumber() + 
+                    ", column " + currentToken.getColumnNumber() +
+                    " - the function " + tokenLexeme + " should be declared previously";
+                    semanticErrors.add(err_message);
+                }
+            }catch(Exception e){
+                String err_message = "Semantic Error: line " + currentToken.getLineNumber() +
+                ", column " + currentToken.getColumnNumber() +
+                " - the function " + tokenLexeme + " should be declared previously";
+                semanticErrors.add(err_message);
+            }
+            SyntaxNode fcallNode = new SyntaxNode("NFCALL", currentToken.getLexeme(), currentToken.getTokenEnumString());
+            match("TLPAR");
+            Integer numParams = symbolTable.get(functionid).getNumParams();
+            if (!lookAheadToken.getTokenEnumString().equals("TRPAR")){            
+                fcallNode = elist(fcallNode, functionid, 0, numParams);
+            }else if(numParams > 0){
+                String err_message = "Semantic Error: line " + currentToken.getLineNumber() +
+                ", column " + currentToken.getColumnNumber() +
+                " - the function " + functionid + " should have " + numParams + " parameters";
+                semanticErrors.add(err_message);
+            }
+            match("TRPAR");
+            return fcallNode;
         }
-        match("TRPAR");
-        return fnNode;
-    }
 
     //NPRLST <prlist> ::= <printitem> , <prlist>
     //Special <prlist> ::= <printitem>)

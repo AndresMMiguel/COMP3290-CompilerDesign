@@ -23,7 +23,7 @@ public class SymbolTableRecord {
         ARRAYDEF,
         ARRAY,
         FUNCTION,
-        PARAMETERS
+        PARAMETER
     }
 
     private Type type;
@@ -31,6 +31,8 @@ public class SymbolTableRecord {
     private Boolean isConstant;
     private String structid;
     private String functionid;
+    private Integer paramPosition;
+    private Integer numParams;
     private Integer arrayLenght;
     private String returnType;
     private String scope;
@@ -39,6 +41,7 @@ public class SymbolTableRecord {
         this.type = getEnum(symbol);
         this.symbol = symbol;
         this.isConstant = false;
+        this.numParams = 0;
     }
     
     private static Type getEnum(Symbol symbol){
@@ -50,8 +53,8 @@ public class SymbolTableRecord {
         return Type.PROGRAMNAME;
     }
 
-    public Type getType(){
-        return this.type;
+    public String getType(){
+        return this.type.name();
     }
     public Symbol getSymbol(){
         return this.symbol;
@@ -61,6 +64,12 @@ public class SymbolTableRecord {
     }
     public String getFunctionId(){
         return this.functionid;
+    }
+    public Integer getParamPosition(){
+        return this.paramPosition;
+    }
+    public Integer getNumParams(){
+        return this.numParams;
     }
     public Integer getArrayLenght(){
         return this.arrayLenght;
@@ -89,6 +98,12 @@ public class SymbolTableRecord {
     }
     public void setFunctionId(String functionid){
         this.functionid = functionid;
+    }
+    public void setParamPosition(Integer paramPosition){
+        this.paramPosition = paramPosition;
+    }
+    public void setNumParams(Integer numParams){
+        this.numParams = numParams;
     }
     public void setArrayLenght(Integer arrayLenght){
         this.arrayLenght = arrayLenght;

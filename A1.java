@@ -26,6 +26,7 @@ public class A1 {
     private static int charNum;
     private static int line;
     private static int column;
+    private static boolean lastRound;
     private static boolean endOfFile;
     private static States currentState;
     private static ArrayList<Character> buffer;
@@ -67,7 +68,7 @@ public class A1 {
             return nextChar;
         }
         Character nextChar = file.charAt(charNum);
-        endOfFile = true;
+        lastRound = true;
         return nextChar;
     }
 
@@ -111,6 +112,7 @@ public class A1 {
         column = 1;
         buffer = new ArrayList<>();
         endOfFile = false;
+        lastRound = false;
         currentState = States.START;
         List<String> lexItem = Arrays.asList(lexItemArray);
         token = new Token();
@@ -128,6 +130,10 @@ public class A1 {
          *  - ERROR state: there is some mistake in the code, let's report what type of error it is and stop analysing the file.
          */
         while(!endOfFile){
+            if(lastRound){
+                endOfFile = true;
+                currentState = States.IDENT;
+            }
             switch(currentState){
                 case START:
                     if(buffer.size()==0){
@@ -166,12 +172,28 @@ public class A1 {
                     }
                 break;
 
+                // case IDENT:
+                //     if(Character.isLetter(buffer.get(buffer.size()-1)) || Character.isDigit(buffer.get(buffer.size()-1))){
+                //         buffer.add(nextChar());
+                //         if(endOfFile){
+                //             column += buffer.size();
+                //             tokenList.add(token.returnIdentToken(getLexem(buffer.size()),line,column));
+                //         }
+                //     }
+                //     else{
+                //         column += buffer.size()-1;
+                //         tokenList.add(token.returnIdentToken(getLexem(buffer.size()-1),line,column)); // returns the corresponding token
+                //         clearBuffer(1);
+                //         currentState = States.START;
+                //     }
+                // break;
+
                 case IDENT:
                     if(Character.isLetter(buffer.get(buffer.size()-1)) || Character.isDigit(buffer.get(buffer.size()-1))){
                         buffer.add(nextChar());
                         if(endOfFile){
                             column += buffer.size();
-                            tokenList.add(token.returnIdentToken(getLexem(buffer.size()),line,column));
+                            tokenList.add(token.returnIdentToken(getLexem(buffer.size()-1),line,column));
                         }
                     }
                     else{
@@ -185,7 +207,10 @@ public class A1 {
                 case STRING:
                     buffer.add(nextChar());
                     if(endOfFile){
-                        String error = "Lexical error Unterminated string: " + getLexem(buffer.size());
+                        // Assignment 1
+                        // String error = "Lexical error Unterminated string: " + getLexem(buffer.size());
+                        // Assignment 3
+                        String error = "Lexical error unterminated string: " + getLexem(buffer.size());
                         column += buffer.size();
                         tokenList.add(token.returnUndefinedToken(error,line,column));
                     }
@@ -196,7 +221,10 @@ public class A1 {
                         currentState = States.START;
                     }
                     else if(buffer.get(buffer.size()-1) == Character.toChars(13)[0]){
-                        String error = "Lexical error Unterminated string: " + getLexem(buffer.size()-1);
+                        // Assignment 1
+                        // String error = "Lexical error Unterminated string: " + getLexem(buffer.size()-1);
+                        // Assignment 3
+                        String error = "Lexical error unterminated string: " + getLexem(buffer.size()-1);
                         column += buffer.size()-1;
                         tokenList.add(token.returnUndefinedToken(error,line,column));
                         clearBuffer(1);
@@ -219,7 +247,10 @@ public class A1 {
                             clearBuffer(1);
                             currentState = States.START;
                         }catch(Exception e){
-                            String error = "Lexical error " + getLexem(buffer.size()-1) + " : Number overflow";
+                            // Assignment 1
+                            // String error = "Lexical error " + getLexem(buffer.size()-1) + " : Number overflow";
+                            // Assignment 3
+                            String error = "Lexical error integer not supported (Number overflow): " + getLexem(buffer.size()-2);
                             column += buffer.size()-1;
                             tokenList.add(token.returnUndefinedToken(error,line,column));
                             clearBuffer(1);
@@ -239,7 +270,10 @@ public class A1 {
                                 clearBuffer(1);
                                 currentState = States.START;
                             }catch(Exception e){
-                                String error = "Lexical error " + getLexem(buffer.size()-1) + " : Number overflow";
+                                // Assignment 1
+                                // String error = "Lexical error " + getLexem(buffer.size()-1) + " : Number overflow";
+                                // Assignment 3
+                                String error = "Lexical error real not supported (Number overflow): " + getLexem(buffer.size()-2);
                                 column += buffer.size()-1;
                                 tokenList.add(token.returnUndefinedToken(error,line,column));
                                 clearBuffer(1);
@@ -254,7 +288,10 @@ public class A1 {
                                 clearBuffer(2);
                                 currentState = States.START;
                             }catch(Exception e){
-                                String error = "Lexical error " + getLexem(buffer.size()-2) + " : Number overflow";
+                                // Assignment 1
+                                // String error = "Lexical error " + getLexem(buffer.size()-2) + " : Number overflow";
+                                // Assignment 3
+                                String error = "Lexical error integer not supported (Number overflow): " + getLexem(buffer.size()-2);
                                 column += buffer.size()-2;
                                 tokenList.add(token.returnUndefinedToken(error,line,column));
                                 clearBuffer(2);
@@ -361,7 +398,8 @@ public class A1 {
                         column++;
                     }
                     
-                    String error = "Lexical error: " + lexem;
+                    // String error = "Lexical error: " + lexem;
+                    String error = "Lexical error invalid character: " + lexem;
                     tokenList.add(token.returnUndefinedToken(error,line,column));
                     currentState = States.START;
                     break;
@@ -386,7 +424,7 @@ public class A1 {
                 for(int i = 14; i < token.getLexeme().length(); i++){
                     message+= token.getLexeme().charAt(i);
                 }
-            String error = "Lexical error (" + token.getLineNumber() + "," + token.getColumnNumber() + ") : " + message;
+            String error = "Lexical error: line " + token.getLineNumber() + ", column " + token.getColumnNumber() + " - " + message;
             lexErrors.add(error);
             }
         }
