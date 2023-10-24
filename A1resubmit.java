@@ -441,21 +441,8 @@ public class A1resubmit {
                     System.out.println(token.getLexeme());
                     printCounter = 0;
                     tundfBefore = true;
-                }
-                                      
+                }                  
                 break;
-
-                // case "TSTRG":
-                //     output = token.getTokenEnumString() + " " + token.getLexeme();
-                //     while(output.length() % 6 != 0){
-                //         output += " ";
-                //     }
-                //     if(printCounter < 10){
-                //         System.out.print(output);
-                //         output = "";
-                //         printCounter++;
-                //     }
-                // break;
 
                 default:
                     tundfBefore = false;
