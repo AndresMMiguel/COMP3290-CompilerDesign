@@ -5,3 +5,4 @@ Project from the course COMP3290-CompilerDesign, consisting of coding a compiler
 The parts will be:
     1) Scanner
     2) Parser
+	3) Code generation
