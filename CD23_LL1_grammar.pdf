@@ -1,0 +1,170 @@
+CD23 Programming Language LL(1) Grammar
+
+NPROG    <program> ::= CD23 <id> <global> <funcs> <mainbody>
+NGLOB
+Special  <globals> ::= <consts> <types> <arrays>
+NILIST
+Special  <consts> ::- constants <initlist> | ε
+NINIT
+Special  <initlist> ::= <init> <opt_initlist>     We applied left factoring to this
+Special  <opt_initlist> ::= , <initlist> | ε      rule because it wasn’t LL(1)
+NFUNCS
+NMAIN    <init> ::= <id> is <expr>
+NSDLST
+Special  <types> ::= types <typelist> | ε
+NTYPEL
+Special  <arrays> ::= arrays <arrdecls> | ε
+NRTYPE
+NATYPE   <funcs> ::= <func> <funcs> | ε
+NFLIST
+Special  <mainbody> ::= main <slist> begin <stats> end CD23 <id>
+Special
+NSDECL   <slist> ::= <decl_prefix> <sdecl> <opt_slist>  We applied left factoring to this
+NALIST   <opt_slist> ::= , <slist> | ε                  rule because it wasn’t LL(1)
+Special
+NARRD    <typelist> ::= <type> <opt_typelist>
+NFUND
+Special  <opt_typelist> ::= <typelist> | ε
+Special
+NPLIST   <type> ::= <structed> is <fields> end
+Special
+NSIMP    <type> ::= <typeid> is array [<expr>] of <structid> end  We applied left
+         <fields> ::= <decl_prefix> <sdecl> <opt_fields>          factoring to these
+         <opt_fields> ::= , <fields> | ε                          rule because it
+         <decl_prefix> ::= <id> :                                 weren’t LL(1)
+
+         <sdecl> ::= <decl_prefix> <stype>                        We applied left
+         <arrdecls> ::= <decl_prefix> <arrdecl> <opt_arrdecl>     factoring to this rule
+         <opt_arrdecl> ::= , <arrdecls> | ε                       because it wasn’t LL(1)
+
+         <arrdecl> ::= <decl_prefix> <typeid>
+
+         <func> ::= func <id> (<plist>):<rtype> <funcbody>
+
+         <rtype> ::= <stype> | void
+
+         <plist> ::= <params> | ε
+
+         <params> ::= <param> <opt_params>
+
+         <opt_params> ::= , <params> | ε
+
+         <param> ::= <decl_prefix> <sdecl>
+NARRP    <param> ::= <decl_prefix> <arrdecl>                      We applied left factoring to
+NARRC    <param> ::= const <decl_prefix> <arrdecl>                these rules because it weren’t
+Special  <funcbody> ::= <locals> begin <stats> end                LL(1)
+Special
+NDLIST   <locals> ::= <dlist> | ε                             We applied left factoring to
+Special  <dlist> ::= <decl> <opt_dlist>                       these rules because it weren’t
+Special  <opt_dlist> ::= , <dlist> | ε                        LL(1)
+Special
+NSTATS   <decl> ::= <decl_prefix> <sdecl> | <decl_prefix> <arrdecl>
+Special
+Special  <stype> ::= integer | real | Boolean                        We applied left
+Special  <stats> ::= <stat>; <opt_stats> | <strstat> <opt_stats>     factoring to this
+Special  <opt_stats> ::= <stats> | ε                                 rule because it
+NFORL    <strstat> ::= <forstat> | <ifstat>                          wasn’t LL(1)
+NREPT
+Special  <stat> ::= <reptstat> | <asngnstat> | <iostat>
+NASGNS
+Special  <stat> ::= <callstat> | <returnstat>
+NIFTH
+NIFTE    <forstat> ::= for (<asgnlist> ; <bool>) <stats> end
+Special
+NASGN    <repstat> ::= repeat (<asgnlist>) <stats> until <bool>
+NPLEQ
+NMNEQ    <asgnlist> ::= <alist> | ε
+NSTEQ
+NDVEQ    <alist> ::= <asgnstat> <opt_alist>                       We applied left
+NINPUT   <opt_alist> ::= , <alist> | ε                            factoring to these
+NOUTP    <ifstat> ::= if (<bool>) <stats> <opt_else> end          rules because
+Special  <opt_else> ::= else <stats> | ε                          they weren’t LL(1)
+NOUTL
+NOUTL    <asgnstat> ::= <var> <asgnop> <bool>
+
+         <asgnop> ::= =
+
+         <asgnop> ::= +=
+
+         <asgnop> ::= -=
+
+         <asgnop> ::= *=
+
+         <asgnop> /=
+
+         <iostat> ::= In >> <vlist>
+
+         <iostat> ::= Out << <prlist> <opt_line>    We applied left factoring to these
+         <opt_line> ::= ε                           rules because they weren’t LL(1).
+
+         <opt_line> ::= <<Line                      Note that if <opt_line> is <<Line,
+         <iostat> ::= Out << Line                   the node is NOUTL, not NOUTP
+NCALL    <callstat> ::= <id> (<elist>) | <id> ()
+NRETN
+NVLIST   <returnstat> ::= return void | return <expr>  We applied left
+Special  <vlist> ::= <var> <opt_vlist>                 factoring to NVLIST
+Special  <opt_vlist> ::= , <vlist> | ε                 because it wasn’t LL(1)
+NSIMV
+Special  <var> ::= <id> <opt_expr>
+NAELT
+NARRV    <opt_expr> ::= ε                              We applied left factoring to these
+NEXPL    <opt_expr> ::= [<expr>] <opt_id>              rules because they weren’t LL(1).
+Special  <opt_id> ::= ε
+NBOOL    <opt_id> ::= . <id>                           Note that if <opt_line> is <<Line,
+Special                                                the node is NOUTL, not NOUTP
+NNOT
+Special  <elist> ::= <bool> <opt_elist>           We applied left factoring to
+Special  <opt_elist> ::= , <elist> | ε            NEXPL because it wasn’t LL(1)
+NAND     <bool> ::= <rel> <bool’>
+NOR      <bool’> ::= <logop> <rel> <bool’>| ε     We changed NBOOL because
+NXOR                                              it was left recursive
+NEQL
+NNEQ     <rel> ::= ! <expr> <relop> <expr>             We applied left
+NGRT     <rel> ::= <expr> <opt_rel>                    factoring to this rule
+NLSS     <opt_rel> ::= <relop> <expr> | ε              because it wasn’t LL(1)
+NLEQ
+NGEQ     <logop> ::= &&
+Special
+NADD     <logop> ::= ||
+NSUB
+Special  <logop> ::= &|
+Special
+NMUL     <relop> ::= ==
+
+         <relop> ::= !=
+
+         <relop> ::= >
+
+         <relop> ::= <
+
+         <relop> ::= <=
+
+         <relop> ::= >=
+
+         <expr> ::= <term> <expr’>                We changed these rules
+         <expr’> ::= +<term> <expr’>              because they were left
+         <expr’>::= - <term> <expr’>              recursive
+
+         <expr’> ::= ε
+
+         <term> ::= <fact> <term’>                We changed these rules
+         <term’> ::= *<fact> <term’>              because they were left
+                                                  recursive
+NDIV     <term’> ::= /<fact> <term’>            We changed this rule
+NMOD     <term’> ::= % <fact> <term’>           because it was left recursive
+Special  <term’> ::= ε
+Special  <fact> ::= <exponent> <fact’>           We applied left
+NPOW     <fact’> ::= ^ <exponent> <fact’> | ε    factoring to this rule
+Special  <exponent> ::= <var>                    because it wasn’t LL(1)
+NILIT    <exponent> ::= <intlit>
+NFLIT    <exponent> ::= <reallit>
+Special  <exponent> ::= <fncall>
+NTRUE    <exponent> ::= true
+NFALS    <exponent> ::= false
+Special  <exponent> ::= (<bool>)
+NFCALL   <fncall> ::= <id> (<elist>) | <id> ()
+NPRLST   <prlist> ::= <printitem> <opt_prlist>
+Special  <opt_prlist> ::= , <prlist> | ε
+Special  <printitem> ::= <expr>
+NSTRG    <printitem> ::= <string>
+

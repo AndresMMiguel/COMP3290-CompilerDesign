@@ -69,6 +69,10 @@ public class Token {
         return token;
     }
 
+    public String getTokenEnumString(){
+        return token.name();
+    }
+
     public String getLexeme(){
         return lexeme;
     }

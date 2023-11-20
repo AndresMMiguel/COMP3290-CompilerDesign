@@ -19,19 +19,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
 
-class CD23Scanner {
+public class A1 {
 
-    private static String path = "C:\\Users\\cswif\\Desktop\\compilerdesign\\scripts\\CD23ExampleAST.txt";
+    private static String path = "C:/Users/amore/Documents/ETSIT-UON/University of Newcastle/COMP6290-Compiler_Design/Assignmets/Assignment1/a-1.txt";
     private static String file;
     private static int charNum;
     private static int line;
     private static int column;
+    private static boolean lastRound;
     private static boolean endOfFile;
     private static States currentState;
     private static ArrayList<Character> buffer;
     private static String[] lexItemArray = {",", ";", "[", "]", "(", ")", "=", "+", "-", "*", "/", "%", "^", "<", ">", ":", ".", "<=", ">=", "!=", "==", "+=", "-=", "*=", "/=", "!", "&&", "||", "&|", ">>","<<"};
     private static Token token;
-    private static ArrayList<Token> tokenList;
+    private ArrayList<Token> tokenList;
+    private ArrayList<String> lexErrors;
 
     private enum States{
         START,
@@ -43,6 +45,13 @@ class CD23Scanner {
         SLCOMMENT,
         MLCOMMENT,
         ERROR
+    }
+
+    public ArrayList<Token> getTokenList(){
+        return this.tokenList;
+    }
+    public ArrayList<String> getLexErrors(){
+        return this.lexErrors;
     }
 
     // Read the input code file, which is located in the variable: path
@@ -59,13 +68,12 @@ class CD23Scanner {
             return nextChar;
         }
         Character nextChar = file.charAt(charNum);
-        endOfFile = true;
+        lastRound = true;
         return nextChar;
     }
 
     /**
-     * Returns a string containing the lexeme of the token
-     * stored in the buffer.
+     * Returns a string containing the lexeme stored in the buffer.
      * 
      * @param (Integer pos) Maximum index of the buffer to create the string
      * @return (String) Lexeme extracted from the buffer
@@ -90,7 +98,8 @@ class CD23Scanner {
     }
 
 
-    public static ArrayList<Token> main (String[] args) throws IOException{
+
+    public void main (String[] args) throws IOException{
 
         // To put the path of the file you want to compile in the command window this way: java CD23Scanner.java [path]
         if (args.length > 0)
@@ -103,10 +112,12 @@ class CD23Scanner {
         column = 1;
         buffer = new ArrayList<>();
         endOfFile = false;
+        lastRound = false;
         currentState = States.START;
         List<String> lexItem = Arrays.asList(lexItemArray);
         token = new Token();
         tokenList = new ArrayList<Token>();
+        lexErrors = new ArrayList<String>();
 
         /** Main loop for the STD:
          *  - START state: the initial/default one. We read the next character and decide what to do with it.
@@ -119,6 +130,10 @@ class CD23Scanner {
          *  - ERROR state: there is some mistake in the code, let's report what type of error it is and stop analysing the file.
          */
         while(!endOfFile){
+            if(lastRound){
+                endOfFile = true;
+                currentState = States.IDENT;
+            }
             switch(currentState){
                 case START:
                     if(buffer.size()==0){
@@ -157,12 +172,28 @@ class CD23Scanner {
                     }
                 break;
 
+                // case IDENT:
+                //     if(Character.isLetter(buffer.get(buffer.size()-1)) || Character.isDigit(buffer.get(buffer.size()-1))){
+                //         buffer.add(nextChar());
+                //         if(endOfFile){
+                //             column += buffer.size();
+                //             tokenList.add(token.returnIdentToken(getLexem(buffer.size()),line,column));
+                //         }
+                //     }
+                //     else{
+                //         column += buffer.size()-1;
+                //         tokenList.add(token.returnIdentToken(getLexem(buffer.size()-1),line,column)); // returns the corresponding token
+                //         clearBuffer(1);
+                //         currentState = States.START;
+                //     }
+                // break;
+
                 case IDENT:
                     if(Character.isLetter(buffer.get(buffer.size()-1)) || Character.isDigit(buffer.get(buffer.size()-1))){
                         buffer.add(nextChar());
                         if(endOfFile){
                             column += buffer.size();
-                            tokenList.add(token.returnIdentToken(getLexem(buffer.size()),line,column));
+                            tokenList.add(token.returnIdentToken(getLexem(buffer.size()-1),line,column));
                         }
                     }
                     else{
@@ -176,7 +207,10 @@ class CD23Scanner {
                 case STRING:
                     buffer.add(nextChar());
                     if(endOfFile){
-                        String error = "Lexical error Unterminated string: " + getLexem(buffer.size());
+                        // Assignment 1
+                        // String error = "Lexical error Unterminated string: " + getLexem(buffer.size());
+                        // Assignment 3
+                        String error = "Lexical error unterminated string: " + getLexem(buffer.size());
                         column += buffer.size();
                         tokenList.add(token.returnUndefinedToken(error,line,column));
                     }
@@ -187,7 +221,10 @@ class CD23Scanner {
                         currentState = States.START;
                     }
                     else if(buffer.get(buffer.size()-1) == Character.toChars(13)[0]){
-                        String error = "Lexical error Unterminated string: " + getLexem(buffer.size()-1);
+                        // Assignment 1
+                        // String error = "Lexical error Unterminated string: " + getLexem(buffer.size()-1);
+                        // Assignment 3
+                        String error = "Lexical error unterminated string: " + getLexem(buffer.size()-1);
                         column += buffer.size()-1;
                         tokenList.add(token.returnUndefinedToken(error,line,column));
                         clearBuffer(1);
@@ -210,7 +247,10 @@ class CD23Scanner {
                             clearBuffer(1);
                             currentState = States.START;
                         }catch(Exception e){
-                            String error = "Lexical error " + getLexem(buffer.size()-1) + " : Number overflow";
+                            // Assignment 1
+                            // String error = "Lexical error " + getLexem(buffer.size()-1) + " : Number overflow";
+                            // Assignment 3
+                            String error = "Lexical error integer not supported (Number overflow): " + getLexem(buffer.size()-2);
                             column += buffer.size()-1;
                             tokenList.add(token.returnUndefinedToken(error,line,column));
                             clearBuffer(1);
@@ -230,7 +270,10 @@ class CD23Scanner {
                                 clearBuffer(1);
                                 currentState = States.START;
                             }catch(Exception e){
-                                String error = "Lexical error " + getLexem(buffer.size()-1) + " : Number overflow";
+                                // Assignment 1
+                                // String error = "Lexical error " + getLexem(buffer.size()-1) + " : Number overflow";
+                                // Assignment 3
+                                String error = "Lexical error real not supported (Number overflow): " + getLexem(buffer.size()-2);
                                 column += buffer.size()-1;
                                 tokenList.add(token.returnUndefinedToken(error,line,column));
                                 clearBuffer(1);
@@ -245,7 +288,10 @@ class CD23Scanner {
                                 clearBuffer(2);
                                 currentState = States.START;
                             }catch(Exception e){
-                                String error = "Lexical error " + getLexem(buffer.size()-2) + " : Number overflow";
+                                // Assignment 1
+                                // String error = "Lexical error " + getLexem(buffer.size()-2) + " : Number overflow";
+                                // Assignment 3
+                                String error = "Lexical error integer not supported (Number overflow): " + getLexem(buffer.size()-2);
                                 column += buffer.size()-2;
                                 tokenList.add(token.returnUndefinedToken(error,line,column));
                                 clearBuffer(2);
@@ -282,11 +328,7 @@ class CD23Scanner {
                     }
                     else{    // taking & and | as lexical error
                         if(getLexem(1).equals("&") || getLexem(1).equals("|")){
-                            String error = "Lexical error: " + buffer.get(0);
-                            column++;
-                            tokenList.add(token.returnUndefinedToken(error,line,column));
-                            buffer.remove(0);
-                            currentState = States.START;
+                            currentState = States.ERROR;
                         }
                     }
                 break;
@@ -317,60 +359,117 @@ class CD23Scanner {
                 break;
 
                 case ERROR:
-                    String error = "Lexical error: " + buffer.get(0);
-                    column++;
-                    tokenList.add(token.returnUndefinedToken(error,line,column));
-                    buffer.remove(0);
-                    currentState = States.START;
-                break;
+                    String lexem = "";
+                    if (buffer.size()>1){
+                        lexem += buffer.get(0);
+                        buffer.remove(0);
 
-                default:
-                    System.out.println("ERROR: State not defined");
-                break;
+                        if( // Prohibited character
+                        (buffer.get(0) != Character.toChars(9)[0]) &&
+                        (buffer.get(0) != ' ') &&
+                        (buffer.get(0) != Character.toChars(10)[0]) &&
+                        (buffer.get(0) != Character.toChars(13)[0]) &&
+                        (!Character.isLetter(buffer.get(0))) &&
+                        (buffer.get(0) != '"') &&
+                        (!Character.isDigit(buffer.get(0))) &&
+                        (!lexItem.contains(buffer.get(0).toString()))){
+                            lexem += buffer.get(0);
+                            buffer.remove(0);
+                        }
+                    }
+
+                    if(buffer.size() == 0){
+                        buffer.add(nextChar());
+                        column++;
+                    }
+
+                    while( // Prohibited character
+                    (buffer.get(buffer.size()-1) != Character.toChars(9)[0]) &&
+                    (buffer.get(buffer.size()-1) != ' ') &&
+                    (buffer.get(buffer.size()-1) != Character.toChars(10)[0]) &&
+                    (buffer.get(buffer.size()-1) != Character.toChars(13)[0]) &&
+                    (!Character.isLetter(buffer.get(buffer.size()-1))) &&
+                    (buffer.get(buffer.size()-1) != '"') &&
+                    (!Character.isDigit(buffer.get(buffer.size()-1))) &&
+                    (!lexItem.contains(buffer.get(buffer.size()-1).toString()))){
+                        lexem += buffer.get(0);
+                        buffer.remove(0);
+                        buffer.add(nextChar());
+                        column++;
+                    }
+                    
+                    // String error = "Lexical error: " + lexem;
+                    String error = "Lexical error invalid character: " + lexem;
+                    tokenList.add(token.returnUndefinedToken(error,line,column));
+                    currentState = States.START;
+                    break;
+
+                    default:
+                        System.out.println("ERROR: State not defined");
+                    break;
 
             }
         }
 
         tokenList.add(token.returnTEOF(line, column));
-        int printCounter = 0;
-        Token undefinded = token.returnUndefinedToken("",line,column);
-        Token stringLit = token.returnStringToken("",line,column);
-        for(Token token:tokenList){
-            //if(token.getLexeme().equals("")){
-            if(token.getTokenEnum() == undefinded.getTokenEnum()){
-                //System.out.print('\n');
-                System.out.println(token.getTokenEnum());
-                System.out.println(token.getLexeme());
-                printCounter = 0;
-            }
-            else if(printCounter < 10){
-                System.out.print(token.getTokenEnum()+" " + token.getLexeme()+" ");
-                printCounter++;
-            }
-            else if(token.getTokenEnum() == stringLit.getTokenEnum()){
-                System.out.println(token.getTokenEnum()+" "+ token.getLexeme()+'\n');
-                printCounter = 0;
-            }
-            //else{
-                //System.out.println( token.getTokenEnum() + token.getLexeme());
-                //printCounter = 0;
-            //}
-            if(printCounter >= 10){
-                printCounter = 0;
-                System.out.print('\n');
-            }
-        }
-        System.out.println("\n\n\nLexical Errors");
-        System.out.println("=============================================================");
+        addLexErrors();
+        // printTokens();
+    }
+
+    // Function to store lexical errors in the ArrayList
+    private void addLexErrors(){
         for(Token token:tokenList){
             if(token.getLexeme().contains("Lexical error")){
                 String message = "";
                 for(int i = 14; i < token.getLexeme().length(); i++){
                     message+= token.getLexeme().charAt(i);
                 }
-                System.out.println("lexical error (" + token.getLineNumber() + "," + token.getColumnNumber() + ") : " + message);
+            String error = "Lexical error: line " + token.getLineNumber() + ", column " + token.getColumnNumber() + " - " + message;
+            lexErrors.add(error);
             }
         }
-        return tokenList;
     }
+
+    // Function to print the tokens from the scanner as per spec in assignment 1
+    // private static void printTokens(){
+    //     int printCounter = 0;
+    //     Token undefinded = token.returnUndefinedToken("",line,column);
+    //     Token stringLit = token.returnStringToken("",line,column);
+    //     for(Token token:tokenList){
+    //         //if(token.getLexeme().equals("")){
+    //         if(token.getTokenEnum() == undefinded.getTokenEnum()){
+    //             //System.out.print('\n');
+    //             System.out.println(token.getTokenEnum());
+    //             System.out.println(token.getLexeme());
+    //             printCounter = 0;
+    //         }
+    //         else if(printCounter < 10){
+    //             System.out.print(token.getTokenEnum()+" " + token.getLexeme()+" ");
+    //             printCounter++;
+    //         }
+    //         else if(token.getTokenEnum() == stringLit.getTokenEnum()){
+    //             System.out.println(token.getTokenEnum()+" "+ token.getLexeme()+'\n');
+    //             printCounter = 0;
+    //         }
+    //         //else{
+    //             //System.out.println( token.getTokenEnum() + token.getLexeme());
+    //             //printCounter = 0;
+    //         //}
+    //         if(printCounter >= 10){
+    //             printCounter = 0;
+    //             System.out.print('\n');
+    //         }
+    //     }
+    //     System.out.println("\n\n\nLexical Errors");
+    //     System.out.println("=============================================================");
+    //     for(Token token:tokenList){
+    //         if(token.getLexeme().contains("Lexical error")){
+    //             String message = "";
+    //             for(int i = 14; i < token.getLexeme().length(); i++){
+    //                 message+= token.getLexeme().charAt(i);
+    //             }
+    //             System.out.println("lexical error (" + token.getLineNumber() + "," + token.getColumnNumber() + ") : " + message);
+    //         }
+    //     }
+    // }
 }
